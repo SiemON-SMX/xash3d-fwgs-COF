@@ -30,4 +30,4 @@ exec $mypath/xash -dev $@
 EOF
 
 mkdir -p artifacts/
-7z a -t7z artifacts/xash3d-fwgs-magx.7z -m0=lzma2 -mx=9 -mfb=64 -md=32m -ms=on -r Xash/
+7z a -t7z artifacts/cry-of-fear-magx.7z -m0=lzma2 -mx=9 -mfb=64 -md=32m -ms=on -r Xash/

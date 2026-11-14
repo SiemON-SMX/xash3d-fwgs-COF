@@ -16,5 +16,5 @@ docker run --name xash-build --rm -v "$(pwd):$(pwd)" -w "$(pwd)" devkitpro/devki
 echo "Packaging artifacts..."
 
 pushd pkgtemp || die
-7z a -t7z ../artifacts/xash3d-fwgs-nswitch.7z -m0=lzma2 -mx=9 -mfb=64 -md=32m -ms=on -r xash3d/
+7z a -t7z ../artifacts/cry-of-fear-nswitch.7z -m0=lzma2 -mx=9 -mfb=64 -md=32m -ms=on -r xash3d/
 popd || die

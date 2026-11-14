@@ -23,4 +23,4 @@ CC=clang-18 CXX=clang++-18 ./waf configure -T release --ps4 --ps4-gamelibs="$PS4
 ./waf build || die
 
 mkdir -p artifacts || die
-cp build/engine/IV0000-XASH00001_00-XASH3DFWGSPS4000.pkg artifacts/xash3d-fwgs-ps4.pkg || die
+cp build/engine/IV0000-COFX00001_00-CRYOFFEARPS40000.pkg artifacts/cry-of-fear-ps4.pkg || die

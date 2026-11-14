@@ -84,7 +84,7 @@
 			android:name=".model.InstallStatusReceiver"
 			android:exported="false">
 			<intent-filter>
-				<action android:name="su.xash.engine.INSTALL_RESULT" />
+				<action android:name="su.xash.cryoffear.INSTALL_RESULT" />
 			</intent-filter>
 		</receiver>
 
@@ -104,7 +104,7 @@
 	</application>
 	<queries>
 		<intent>
-			<action android:name="su.xash.engine.MOD" />
+			<action android:name="su.xash.cryoffear.MOD" />
 		</intent>
 		<intent>
 			<action android:name="android.intent.action.SENDTO" />

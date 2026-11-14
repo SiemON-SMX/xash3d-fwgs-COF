@@ -74,7 +74,7 @@ GNU General Public License for more details.
 
 #define DEFAULT_UPDATE_PAGE "https://github.com/SiemON-SMX/xash3d-fwgs-COF/releases/latest"
 
-#define XASH_ENGINE_NAME "Xash3D FWGS"
+#define XASH_ENGINE_NAME "Cry of Fear"
 #define XASH_DEDICATED_SERVER_NAME "XashDS"
 #define XASH_VERSION        "0.21" // engine current version
 #define XASH_COMPAT_VERSION "0.99" // version we are based on

@@ -37,7 +37,7 @@
 	<string name="game_apk_required">Требуется APK с игровыми библиотеками</string>
 	<string name="game_apk_message">Чтобы запустить эту игру, нужно установить дополнительный APK</string>
 	<string name="game_apk_install">Скачать</string>
-	<string name="crash_dialog_title">Xash3D FWGS аварийно завершился в прошлый раз</string>
+	<string name="crash_dialog_title">Cry of Fear аварийно завершился в прошлый раз</string>
 	<string name="crash_send_to_developers">Отправить разработчикам</string>
 	<string name="crash_share">Поделиться</string>
 	<string name="crash_dismiss">Закрыть</string>
@@ -72,7 +72,7 @@
 	<string name="engine_update_later">Позже</string>
 	<string name="engine_update_downloading">Загрузка обновления</string>
 	<string name="engine_update_permission_needed">Нужно разрешение</string>
-	<string name="engine_update_permission_message">Чтобы установить обновление, разрешите Xash3D FWGS устанавливать неизвестные приложения в настройках системы.</string>
+	<string name="engine_update_permission_message">Чтобы установить обновление, разрешите Cry of Fear устанавливать неизвестные приложения в настройках системы.</string>
 	<string name="engine_update_open_settings">Открыть настройки</string>
 	<string name="check_updates">Проверить обновления</string>
 	<string name="engine_update_checking">Проверка обновлений…</string>

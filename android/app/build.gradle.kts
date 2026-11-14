@@ -14,7 +14,7 @@ extensions.configure<ApplicationExtension> {
 	compileSdk = 35
 
 	defaultConfig {
-		applicationId = "su.xash.engine"
+		applicationId = "su.xash.cryoffear"
 		versionName = "0.21-" + getGitHash()
 		versionCode = getBuildNum()
 		minSdk = 21

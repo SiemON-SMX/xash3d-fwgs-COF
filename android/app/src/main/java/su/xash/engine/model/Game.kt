@@ -31,7 +31,7 @@ class Game(val ctx: Context, val basedir: File, val gameInfoFile: File, previous
 	val coverSignature: String?
 
 	val mobileHacksGames = arrayOf("aom", "bdlands", "biglolly", "bshift", "caseclosed",
-		"hl_urbicide", "induction", "redempt", "secret",
+		"cryoffear", "hl_urbicide", "induction", "redempt", "secret",
 		"sewer_beta", "tot", "valve", "vendetta")
 
 	// a1ba: follow the behavior of Xash3D's game_launch.
@@ -39,7 +39,7 @@ class Game(val ctx: Context, val basedir: File, val gameInfoFile: File, previous
 	// for any other game that's not hl this string must be replaced with your
 	// main game directory
 	// mods always use -game command line parameter
-	var defaultGameDir = "valve"
+	var defaultGameDir = "CryOfFear"
 
 	private val pref = ctx.getSharedPreferences(basedir.name, Context.MODE_PRIVATE)
 
@@ -90,7 +90,7 @@ class Game(val ctx: Context, val basedir: File, val gameInfoFile: File, previous
 			commandLineArgs += "-game ${basedir.name} "
 
 		if (packageNames != null) {
-			if (packageNames.contains("su.xash.engine")) {
+			if (packageNames.contains("su.xash.cryoffear")) {
 				commandLineArgs += "-dll @hl "
 			} else if (packageNames.contains("su.xash.cs16client")) {
 				if (pref.getBoolean("enable_yapb_bots", true)) {
@@ -231,7 +231,7 @@ class Game(val ctx: Context, val basedir: File, val gameInfoFile: File, previous
 
 		// mobile_hacks hlsdk-portable branch allows us to have few more mods out of the box
 		if (mobileHacksGames.any { it.equals(gamedir, ignoreCase = true) })
-			return arrayOf("su.xash.engine")
+			return arrayOf("su.xash.cryoffear")
 
 		return null
 	}
@@ -245,7 +245,7 @@ class Game(val ctx: Context, val basedir: File, val gameInfoFile: File, previous
 			return "https://github.com/Velaron/tf15-client/releases/download/continuous/TF15Client-Android.apk"
 
 		// just so we don't return null
-		return "https://github.com/SiemON-SMX/xash3d-fwgs-COF/releases/download/continuous/xash3d-fwgs-android.apk"
+		return "https://github.com/SiemON-SMX/xash3d-fwgs-COF/releases/download/continuous/cry-of-fear-android.apk"
 	}
 
 	private fun getGameLibDir(ctx: Context, packageName: String): String? {

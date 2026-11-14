@@ -24,4 +24,4 @@ fi
 cp -vr /Library/Frameworks/SDL2.framework bin
 
 mkdir -p artifacts/
-tar -cJvf "artifacts/xash3d-fwgs-apple-$ARCH.tar.xz" -C bin . # skip the bin directory from resulting tar archive
+tar -cJvf "artifacts/cry-of-fear-apple-$ARCH.tar.xz" -C bin . # skip the bin directory from resulting tar archive
