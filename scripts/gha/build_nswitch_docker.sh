@@ -52,7 +52,7 @@ echo "Building engine..."
 echo "Building HLSDK..."
 
 pushd hlsdk-portable || die
-build_hlsdk mobile_hacks valve
+build_hlsdk CryOfFear CryOfFear
 build_hlsdk opfor gearbox
 popd || die
 
