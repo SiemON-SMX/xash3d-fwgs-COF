@@ -54,7 +54,6 @@ echo "Building HLSDK..."
 
 pushd hlsdk-portable || die
 build_hlsdk CryOfFear CryOfFear
-build_hlsdk opfor gearbox
 popd || die
 
 # bshift can be used from mobile_hacks branch
