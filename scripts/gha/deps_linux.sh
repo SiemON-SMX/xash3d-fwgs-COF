@@ -92,3 +92,5 @@ wget "https://github.com/libsdl-org/SDL/releases/download/release-$SDL_VERSION/S
 mv "SDL2-$SDL_VERSION" SDL2_src
 
 rustup target add "${RUST_TARGET[$GH_CPU_ARCH]}"
+
+git clone --depth 1 --recursive https://github.com/SiemON-SMX/hlsdk-portable -b CryOfFear hlsdk-portable || die

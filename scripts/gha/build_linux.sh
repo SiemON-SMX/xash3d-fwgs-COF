@@ -92,6 +92,22 @@ deploy_engine()
 	if [ -d "ffmpeg" ]; then
 		cp -av ffmpeg/lib/libav* ffmpeg/lib/libsw* "$APPDIR/"
 	fi
+
+	pushd hlsdk-portable || die
+	HLSDK_EXTRA_ARGS=""
+	if [ "$ARCH" = "amd64" ]; then
+		HLSDK_EXTRA_ARGS="-8"
+	fi
+	./waf configure -T release --disable-werror $HLSDK_EXTRA_ARGS || die_configure
+	./waf build || die
+	./waf install --destdir="$BUILDDIR/$APPDIR" || die
+	popd || die
+
+	if [ -d "$APPDIR/valve" ]; then
+		mkdir -p "$APPDIR/CryOfFear"
+		cp -r "$APPDIR/valve/"* "$APPDIR/CryOfFear/"
+		rm -rf "$APPDIR/valve"
+	fi
 }
 
 build_appimage()

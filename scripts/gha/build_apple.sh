@@ -11,6 +11,12 @@ pushd hlsdk || die
 ./waf configure build install --destdir=../bin || die
 popd || die
 
+if [ -d "bin/valve" ]; then
+	mkdir -p bin/CryOfFear
+	cp -r bin/valve/* bin/CryOfFear/
+	rm -rf bin/valve
+fi
+
 ./waf configure --enable-utils --enable-tests --enable-lto --enable-tui || die_configure
 ./waf build -v || die
 ./waf install --destdir=bin || die

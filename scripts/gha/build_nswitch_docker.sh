@@ -55,7 +55,10 @@ pushd hlsdk-portable || die
 build_hlsdk CryOfFear CryOfFear
 popd || die
 
-# bshift can be used from mobile_hacks branch
 pushd pkgtemp/xash3d || die
-cp -v valve/dlls/hl_nswitch_arm64.so bshift/dlls/bshift_nswitch_arm64.so
+if [ -d "valve" ]; then
+	mkdir -p CryOfFear
+	cp -r valve/* CryOfFear/
+	rm -rf valve
+fi
 popd || die
