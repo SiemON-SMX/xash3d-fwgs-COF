@@ -72,7 +72,7 @@ GNU General Public License for more details.
 
 #define CVAR_GLCONFIG_DESCRIPTION	"enable or disable %s"
 
-#define DEFAULT_UPDATE_PAGE "https://github.com/FWGS/xash3d-fwgs/releases/latest"
+#define DEFAULT_UPDATE_PAGE "https://github.com/SiemON-SMX/xash3d-fwgs-COF/releases/latest"
 
 #define XASH_ENGINE_NAME "Xash3D FWGS"
 #define XASH_DEDICATED_SERVER_NAME "XashDS"

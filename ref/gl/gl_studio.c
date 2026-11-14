@@ -2060,7 +2060,7 @@ static void R_StudioDrawPoints( void )
 	// but doesn't enable OpenGL GL_CULL_FACE. This allows mod developers to disable
 	// backface culling through TriAPI call
 	//
-	// see https://github.com/FWGS/xash3d-fwgs/issues/2517
+	// see https://github.com/SiemON-SMX/xash3d-fwgs-COF/issues/2517
 	if( glState.faceCull != GL_NONE )
 	{
 		if( R_AllowFlipViewModel( RI.currententity ))

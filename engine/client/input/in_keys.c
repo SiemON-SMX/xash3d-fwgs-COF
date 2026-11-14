@@ -775,7 +775,7 @@ void GAME_EXPORT Key_Event( int key, int down )
 
 			// deliver keys regardless of whether the client.dll handled them or not
 			// reproduces GoldSrc behavior, where keys are passed even if the client.dll claims to have handled them
-			// this is needed for Cry of fear's Computer interface input, for more context, see https://github.com/FWGS/xash3d-fwgs/issues/1923
+			// this is needed for Cry of fear's Computer interface input, for more context, see https://github.com/SiemON-SMX/xash3d-fwgs-COF/issues/1923
 			VGui_KeyEvent( key, down );
 			return;
 		}
@@ -827,9 +827,9 @@ void GAME_EXPORT Key_Event( int key, int down )
 				return;
 			}
 			// Note: we don't offer the client key handling here since reaching this line proves the client already declined handling it.
-			// this prevents accidentally declining a key the client asked the engine to handle. For more context, see https://github.com/FWGS/xash3d-fwgs/issues/1943
+			// this prevents accidentally declining a key the client asked the engine to handle. For more context, see https://github.com/SiemON-SMX/xash3d-fwgs-COF/issues/1943
 			
-			// call escape immediately within the engine, since the client may not handle it (Natural Selection doesn't. See https://github.com/FWGS/xash3d-fwgs/issues/528)
+			// call escape immediately within the engine, since the client may not handle it (Natural Selection doesn't. See https://github.com/SiemON-SMX/xash3d-fwgs-COF/issues/528)
 			CL_Escape_f();
 			return;
 		default:

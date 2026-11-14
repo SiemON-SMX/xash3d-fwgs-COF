@@ -363,7 +363,7 @@ static inline float SwapFloat( float bf )
 	return UintAsFloat( li );
 }
 
-// don't use isnan: it's broken on IRIX as reported in https://github.com/FWGS/xash3d-fwgs/pull/1211
+// don't use isnan: it's broken on IRIX as reported in https://github.com/SiemON-SMX/xash3d-fwgs-COF/pull/1211
 // and it's optimized out to false under -ffinite-math-only (-Ofast)
 static inline int IS_NAN( float x )
 {

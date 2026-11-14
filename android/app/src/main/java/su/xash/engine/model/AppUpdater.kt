@@ -202,11 +202,11 @@ class AppUpdater(private val context: Context) {
 		private const val TAG_CONTINUOUS = "continuous"
 		private const val INSTALL_ACTION = "su.xash.engine.INSTALL_RESULT"
 		private const val APK_URL =
-			"https://github.com/FWGS/xash3d-fwgs/releases/download/continuous/xash3d-fwgs-android.apk"
+			"https://github.com/SiemON-SMX/xash3d-fwgs-COF/releases/download/continuous/xash3d-fwgs-android.apk"
 		private const val RELEASE_API_URL =
-			"https://api.github.com/repos/FWGS/xash3d-fwgs/releases/tags/continuous"
+			"https://api.github.com/repos/SiemON-SMX/xash3d-fwgs-COF/releases/tags/continuous"
 		private const val COMPARE_API_BASE =
-			"https://api.github.com/repos/FWGS/xash3d-fwgs/compare"
+			"https://api.github.com/repos/SiemON-SMX/xash3d-fwgs-COF/compare"
 		private val BUILDNUM_REGEX = Regex("""buildnum\s+(\d+)""")
 	}
 }
