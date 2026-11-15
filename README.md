@@ -1,4 +1,4 @@
-# Cry of Fear for Xash3D FWGS Engine <img align="right" width="128" height="128" src="https://github.com/SiemON-SMX/xash3d-fwgs-COF/raw/master/game_launch/icon-xash-material.png" alt="Xash3D FWGS icon" />
+# Cry of Fear for Xash3D FWGS Custom COF Engine <img align="right" width="128" height="128" src="https://github.com/SiemON-SMX/xash3d-fwgs-COF/raw/master/game_launch/icon-xash-material.png" alt="Xash3D FWGS icon" />
 [![GitHub Actions Status](https://github.com/SiemON-SMX/xash3d-fwgs-COF/actions/workflows/c-cpp.yml/badge.svg)](https://github.com/SiemON-SMX/xash3d-fwgs-COF/actions/workflows/c-cpp.yml) \
 [![Discord Server](https://img.shields.io/discord/1480939659021520979?logo=Discord&label=SiemON%20ports%20%28SP%20OF%29)](https://discord.gg/38YzeFrtvJ) \
 [![Download Continuous Build](https://img.shields.io/badge/downloads-continuous-orange)](https://github.com/SiemON-SMX/xash3d-fwgs-COF/releases/tag/continuous)
