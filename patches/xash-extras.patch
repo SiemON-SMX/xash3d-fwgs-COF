@@ -1,0 +1,180 @@
+diff -ruN a/gamepad_presets/playstation.cfg b/gamepad_presets/playstation.cfg
+--- a/gamepad_presets/playstation.cfg	2026-11-13 06:35:34.000000000 +0300
++++ b/gamepad_presets/playstation.cfg	2026-11-15 13:29:04.302681898 +0300
+@@ -10,6 +10,8 @@
+ bind "Y_BUTTON" "+reload"
+ 
+ // bumpers
++bind "L1_BUTTON" "invprev"
++bind "R1_BUTTON" "invnext"
+ 
+ // triggers
+ bind "LTRIGGER" "+attack2"
+@@ -17,10 +19,15 @@
+ 
+ // back paddles on DualSense Edge and some third party controllers. SDL orders them right hand first,
+ // so PADDLE1 is upper right, PADDLE2 is upper left, PADDLE3 is lower right and PADDLE4 is lower left
++bind "PADDLE1" "savequick"
+ bind "PADDLE2" "+jump"
++bind "PADDLE3" "loadquick"
+ bind "PADDLE4" "+duck"
+ 
+ // dpad
++bind "DPAD_UP" "invprev"
++bind "DPAD_DOWN" "invnext"
++bind "DPAD_LEFT" "savequick"
+ bind "DPAD_RIGHT" "lastinv"
+ 
+ // joysticks clicks
+diff -ruN a/gamepad_presets/psp.cfg b/gamepad_presets/psp.cfg
+--- a/gamepad_presets/psp.cfg	2026-11-13 06:35:34.000000000 +0300
++++ b/gamepad_presets/psp.cfg	1970-01-01 02:00:00.000000000 +0200
+@@ -1,26 +0,0 @@
+-// Gamepad layout for PSP, follows Crow-bar's PSP port build 2603.
+-// The only analog stick is used to look around, so Triangle and Cross move instead.
+-// Buttons are named after their Xbox positions: A is Cross, B is Circle, X is Square and Y is Triangle
+-joy_unbindall
+-
+-// face buttons
+-bind "A_BUTTON" "+back"
+-bind "B_BUTTON" "impulse 100"
+-bind "X_BUTTON" "+use"
+-bind "Y_BUTTON" "+forward"
+-
+-// L and R
+-bind "L1_BUTTON" "+jump"
+-bind "R1_BUTTON" "+attack"
+-
+-// dpad
+-bind "DPAD_UP" "+attack2"
+-bind "DPAD_DOWN" "+duck"
+-
+-// SELECT
+-bind "MODE" "toggleconsole"
+-bind "START" "escape"
+-
+-joy_axis_binding "sfpyrl"
+-joy_touchpad_right_mode off
+-joy_touchpad_left_mode off
+diff -ruN a/gamepad_presets/psvita.cfg b/gamepad_presets/psvita.cfg
+--- a/gamepad_presets/psvita.cfg	2026-11-13 06:35:34.000000000 +0300
++++ b/gamepad_presets/psvita.cfg	2026-11-15 13:29:04.302681898 +0300
+@@ -13,6 +13,8 @@
+ // dpad
+ bind "DPAD_UP" "lastinv"
+ bind "DPAD_DOWN" "impulse 100"
++bind "DPAD_LEFT" "invprev"
++bind "DPAD_RIGHT" "invnext"
+ 
+ bind "START" "escape"
+ 
+diff -ruN a/gamepad_presets/steam_controller_2015.cfg b/gamepad_presets/steam_controller_2015.cfg
+--- a/gamepad_presets/steam_controller_2015.cfg	2026-11-13 06:35:34.000000000 +0300
++++ b/gamepad_presets/steam_controller_2015.cfg	2026-11-15 13:29:04.302681898 +0300
+@@ -12,6 +12,8 @@
+ bind "Y_BUTTON" "+reload"
+ 
+ // bumpers
++bind "L1_BUTTON" "invprev"
++bind "R1_BUTTON" "invnext"
+ 
+ // triggers are analogue, so no L2/R2
+ bind "LTRIGGER" "+attack2"
+@@ -22,6 +24,9 @@
+ bind "PADDLE2" "+jump"
+ 
+ // left trackpad clicks
++bind "DPAD_UP" "invprev"
++bind "DPAD_DOWN" "invnext"
++bind "DPAD_LEFT" "savequick"
+ bind "DPAD_RIGHT" "lastinv"
+ 
+ // joystick and right trackpad clicks
+diff -ruN a/gamepad_presets/steam_controller_2026.cfg b/gamepad_presets/steam_controller_2026.cfg
+--- a/gamepad_presets/steam_controller_2026.cfg	2026-11-13 06:35:34.000000000 +0300
++++ b/gamepad_presets/steam_controller_2026.cfg	2026-11-15 13:29:04.302681898 +0300
+@@ -14,16 +14,23 @@
+ bind "Y_BUTTON" "+reload"
+ 
+ // bumpers
++bind "L1_BUTTON" "invprev"
++bind "R1_BUTTON" "invnext"
+ 
+ // triggers (on both Deck and Controller they are analogue, so no L2/R2)
+ bind "LTRIGGER" "+attack2"
+ bind "RTRIGGER" "+attack"
+ 
+ // back paddles. SDL orders them right hand first, so PADDLE1 is R4, PADDLE2 is L4, PADDLE3 is R5 and PADDLE4 is L5
++bind "PADDLE1" "savequick"
+ bind "PADDLE2" "+jump"
++bind "PADDLE3" "loadquick"
+ bind "PADDLE4" "+duck"
+ 
+ // dpad
++bind "DPAD_UP" "invprev"
++bind "DPAD_DOWN" "invnext"
++bind "DPAD_LEFT" "savequick"
+ bind "DPAD_RIGHT" "lastinv"
+ 
+ // joysticks clicks
+diff -ruN a/gamepad_presets/xbox.cfg b/gamepad_presets/xbox.cfg
+--- a/gamepad_presets/xbox.cfg	2026-11-13 06:35:34.000000000 +0300
++++ b/gamepad_presets/xbox.cfg	2026-11-15 13:29:04.302681898 +0300
+@@ -9,6 +9,8 @@
+ bind "Y_BUTTON" "+reload"
+ 
+ // bumpers
++bind "L1_BUTTON" "invprev"
++bind "R1_BUTTON" "invnext"
+ 
+ // triggers
+ bind "LTRIGGER" "+attack2"
+@@ -16,10 +18,15 @@
+ 
+ // back paddles on Elite and some third party controllers. SDL orders them right hand first,
+ // so PADDLE1 is upper right, PADDLE2 is upper left, PADDLE3 is lower right and PADDLE4 is lower left
++bind "PADDLE1" "savequick"
+ bind "PADDLE2" "+jump"
++bind "PADDLE3" "loadquick"
+ bind "PADDLE4" "+duck"
+ 
+ // dpad
++bind "DPAD_UP" "invprev"
++bind "DPAD_DOWN" "invnext"
++bind "DPAD_LEFT" "savequick"
+ bind "DPAD_RIGHT" "lastinv"
+ 
+ // joysticks clicks
+diff -ruN a/touch_presets/analog.cfg b/touch_presets/analog.cfg
+--- a/touch_presets/analog.cfg	2026-11-13 06:35:34.000000000 +0300
++++ b/touch_presets/analog.cfg	2026-11-15 13:29:04.322681898 +0300
+@@ -9,6 +9,8 @@
+ 
+ touch_addbutton "move" "gfx/touch/stick_ring" "_joy" 0.060 0.600 0.240 0.920 255 255 255 200 2048 1
+ touch_addbutton "look" "gfx/touch/stick_ring" "_look" 0.700 0.600 0.880 0.920 255 255 255 200 0 1
++touch_addbutton "invprev" "gfx/touch/prev" "invprev" 0.020 0.240 0.090 0.364444 255 255 255 200 0 1
++touch_addbutton "invnext" "gfx/touch/next" "invnext" 0.105 0.240 0.175 0.364444 255 255 255 200 0 1
+ touch_addbutton "reload" "gfx/touch/reload" "+reload" 0.560 0.340 0.640 0.482222 255 255 255 200 0 1
+ touch_addbutton "use" "gfx/touch/use" "+use" 0.680 0.340 0.760 0.482222 255 255 255 200 0 1
+ touch_addbutton "jump" "gfx/touch/jump" "+jump" 0.915 0.640 0.990 0.773333 255 255 255 200 0 1
+@@ -19,6 +21,8 @@
+ touch_addbutton "edit" "gfx/touch/settings" "touch_enableedit" 0.105 0.020 0.175 0.144444 255 255 255 200 32 1
+ touch_addbutton "show_numbers" "gfx/touch/weapons" "exec touch_default/numbers.cfg" 0.400 0.020 0.470 0.144444 255 255 255 200 0 1
+ touch_addbutton "flashlight" "gfx/touch/flashlight" "impulse 100" 0.915 0.020 0.985 0.144444 255 255 255 200 0 1
++touch_addbutton "loadquick" "gfx/touch/load" "loadquick" 0.745 0.020 0.815 0.144444 255 255 255 200 16 1
++touch_addbutton "savequick" "gfx/touch/save" "savequick" 0.830 0.020 0.900 0.144444 255 255 255 200 16 1
+ touch_addbutton "scores" "gfx/touch/scores" "+showscores" 0.745 0.020 0.815 0.144444 255 255 255 200 8 1
+ touch_addbutton "messagemode" "gfx/touch/chat" "messagemode" 0.830 0.020 0.900 0.144444 255 255 255 200 8 1
+ touch_addbutton "spray" "gfx/touch/spray" "impulse 201" 0.660 0.020 0.730 0.144444 255 255 255 200 8 1
+diff -ruN a/touch_presets/psvita.cfg b/touch_presets/psvita.cfg
+--- a/touch_presets/psvita.cfg	2026-11-13 06:35:34.000000000 +0300
++++ b/touch_presets/psvita.cfg	2026-11-15 13:29:04.322681898 +0300
+@@ -45,6 +45,8 @@
+ touch_removeall
+ touch_aspectratio 0.566667
+ touch_addbutton "look" "" "_look" 0.5 -0 1 0.988237 255 255 255 255 0
++touch_addbutton "loadquick" "touch_default/load" "loadquick" 0.76 0 0.84 0.141176 255 255 255 255 16
++touch_addbutton "savequick" "touch_default/save" "savequick" 0.84 0 0.92 0.141176 255 255 255 255 16
+ touch_addbutton "messagemode" "touch_default/keyboard" "messagemode" 0.84 0 0.92 0.141176 255 255 255 255 8
+ touch_addbutton "flashlight" "touch_default/flash_light_filled" "impulse 100" 0.92 0 1 0.141176 255 255 255 255 1
+ touch_addbutton "scores" "touch_default/map" "+showscores" 0.76 0 0.84 0.141176 255 255 255 255 8
