@@ -1277,6 +1277,30 @@ Log.d("SteamCM", "[LOGON] field 7 (client_os_type=-500 AndroidUnknown) tag=${f7[
             }
         }
 
+        private fun parseDepotDecryptionKeyResponse(data: ByteArray): ByteArray {
+            val rdr = ProtoReader(data)
+            var eresult = 0
+            var key: ByteArray? = null
+            while (rdr.remaining > 0) {
+                val tag = rdr.readVarint()
+                val fn = tag shr 3
+                val wt = tag and 0x7
+                when {
+                    fn == 1 && wt == 0 -> eresult = rdr.readVarint()
+                    fn == 3 && wt == 2 -> {
+                        val klen = rdr.readVarint()
+                        key = rdr.readBytes(klen)
+                    }
+                    else -> rdr.skipField()
+                }
+            }
+            if (eresult != 1 || key == null || key.isEmpty()) {
+                throw Exception("Steam returned eresult=$eresult (no depot key)")
+            }
+            Log.d("SteamCM", "[depotKey] Got key size=${key.size}")
+            return key
+        }
+
         suspend fun getDepotDecryptionKey(appId: Int, depotId: Int): ByteArray =
             suspendCancellableCoroutine { cont ->
                 try {
@@ -1324,28 +1348,14 @@ Log.d("SteamCM", "[LOGON] field 7 (client_os_type=-500 AndroidUnknown) tag=${f7[
                                         val subHdrLen = Proto.readInt32LE(subMsg, 4)
                                         val subOff = 8 + subHdrLen
                                         val subBody = subMsg.copyOfRange(subOff, subMsg.size)
-                                        val subRdr = ProtoReader(subBody)
-                                        subRdr.skipField()
-                                        subRdr.skipField()
-                                        subRdr.readVarint()
-                                        val klen = subRdr.readVarint()
-                                        val key = subRdr.readBytes(klen)
-                                        Log.d("SteamCM", "[depotKey] Got key size=${key.size}")
-                                        cont.resume(key)
+                                        cont.resume(parseDepotDecryptionKeyResponse(subBody))
                                         gotKey = true
                                         break
                                     }
                                 }
                             }
                         } else if (emsg == 5439) {
-                            val rdr = ProtoReader(data)
-                            rdr.skipField()
-                            rdr.skipField()
-                            rdr.readVarint()
-                            val klen = rdr.readVarint()
-                            val key = rdr.readBytes(klen)
-                            Log.d("SteamCM", "[depotKey] Got key size=${key.size}")
-                            cont.resume(key)
+                            cont.resume(parseDepotDecryptionKeyResponse(data))
                             gotKey = true
                         } else if (emsg == 757) {
                             cont.resumeWithException(Exception("Got logged off while requesting depot key"))
