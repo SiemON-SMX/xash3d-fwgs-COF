@@ -94,9 +94,9 @@ jobs:
       shell: bash
       run: |
         git submodule update --init --checkout 3rdparty/gl4es/gl4es
-        git -C 3rdparty/extras/xash-extras apply ../../../patches/xash-extras.patch
-        git -C 3rdparty/freevgui apply ../../patches/freevgui.patch
-        git -C 3rdparty/gl4es/gl4es apply ../../../patches/gl4es.patch
+        git -C 3rdparty/extras/xash-extras apply -R ../../../patches/xash-extras.patch
+        git -C 3rdparty/freevgui apply -R ../../patches/freevgui.patch
+        git -C 3rdparty/gl4es/gl4es apply -R ../../../patches/gl4es.patch
     - name: Cache Sailfish SDK images
       if: matrix.targetos == 'sailfish'
       uses: actions/cache@v6
@@ -138,9 +138,9 @@ jobs:
         git submodule update --init --checkout 3rdparty/nanogl 3rdparty/gl-wes-v2 3rdparty/gl4es/gl4es
     - name: Apply custom 3rdparty patches
       run: |
-        git -C 3rdparty/extras/xash-extras apply ../../../patches/xash-extras.patch
-        git -C 3rdparty/freevgui apply ../../patches/freevgui.patch
-        git -C 3rdparty/gl4es/gl4es apply ../../../patches/gl4es.patch    
+        git -C 3rdparty/extras/xash-extras apply -R ../../../patches/xash-extras.patch
+        git -C 3rdparty/freevgui apply -R ../../patches/freevgui.patch
+        git -C 3rdparty/gl4es/gl4es apply -R ../../../patches/gl4es.patch    
     - name: Build flatpak (Compat.i386)
       uses: FWGS/flatpak-github-actions/flatpak-builder@v6.5
       with:
