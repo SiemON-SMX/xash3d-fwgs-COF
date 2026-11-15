@@ -12,14 +12,14 @@
 	update = none
 [submodule "ref_gl/gl4es"]
 	path = 3rdparty/gl4es/gl4es
-	url = https://github.com/ptitSeb/gl4es
+	url = https://github.com/SiemON-SMX/gl4es
 	update = none
 [submodule "opus"]
 	path = 3rdparty/opus/opus
 	url = https://github.com/xiph/opus
 [submodule "3rdparty/xash-extras"]
 	path = 3rdparty/extras/xash-extras
-	url = https://github.com/FWGS/xash-extras
+	url = https://github.com/SiemON-SMX/xash-extras
 [submodule "3rdparty/bzip2/bzip2"]
 	path = 3rdparty/bzip2/bzip2
 	url = https://gitlab.com/bzip2/bzip2
@@ -50,7 +50,7 @@
 	url = https://github.com/FWGS/mbedtls-releases.git
 [submodule "3rdparty/freevgui"]
 	path = 3rdparty/freevgui
-	url = https://github.com/FWGS/freevgui
+	url = https://github.com/SiemON-SMX/freevgui
 [submodule "3rdparty/mpg123/mpg123"]
 	path = 3rdparty/mpg123/mpg123
 	url = https://github.com/libsdl-org/mpg123
