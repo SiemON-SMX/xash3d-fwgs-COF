@@ -116,7 +116,7 @@ build_appimage()
 
 	cp scripts/gha/linux/AppRun "$APPDIR/AppRun"
 	cp scripts/gha/linux/xash3d-fwgs.desktop "$APPDIR/$APP.desktop"
-	wget "https://raw.githubusercontent.com/FWGS/fwgs-artwork/master/xash3d/icon_512.png" -O "$APPDIR/$APP.png"
+	cp game_launch/icon-xash-material.png "$APPDIR/$APP.png"
 
 	chmod +x "$APPDIR"/AppRun # Engine launcher & engine launcher script
 	echo "Contents of AppImage: "

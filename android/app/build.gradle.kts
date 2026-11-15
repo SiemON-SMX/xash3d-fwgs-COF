@@ -60,6 +60,14 @@ extensions.configure<ApplicationExtension> {
 		buildConfig = true
 	}
 
+	signingConfigs {
+		create("androidDebugKey") {
+			storeFile = File(projectDir.parentFile, "debug.keystore")
+			storePassword = "android"
+			keyAlias = "androiddebugkey"
+			keyPassword = "android"
+		}
+	}
 
 	lint {
 		abortOnError = false
@@ -111,7 +119,8 @@ extensions.configure<ApplicationExtension> {
 
 		register("continuous") {
 			initWith(getByName("release"))
-			buildConfigField("boolean", "ENABLE_AUTO_UPDATE", "false")
+			buildConfigField("boolean", "ENABLE_AUTO_UPDATE", "true")
+			signingConfig = signingConfigs.getByName("androidDebugKey")
 		}
 	}
 }

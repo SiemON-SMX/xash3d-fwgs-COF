@@ -114,7 +114,7 @@
 	</application>
 	<queries>
 		<intent>
-			<action android:name="su.xash.engine.MOD" />
+			<action android:name="su.xash.cryoffear.MOD" />
 		</intent>
 		<intent>
 			<action android:name="android.intent.action.SENDTO" />

@@ -90,7 +90,7 @@
 	<string name="crash_logs">Crash logs</string>
 	<string name="crash_logs_empty">No crash logs recorded</string>
 	<string name="crash_log_delete">Delete</string>
-	<string name="crash_email_subject" translatable="false">Xash3D FWGS crash report</string>
+	<string name="crash_email_subject" translatable="false">Cry of Fear crash report</string>
 	<string name="crash_email_body">Crash details are attached. Please describe in as much detail as possible what you were doing when the game crashed — every little thing helps us fix it!</string>
 	<string name="crash_no_mail_app_title">No mail app found</string>
 	<string name="crash_no_mail_app_message">No email client is installed on this device. Install one (or use Share to send the report another way) and try again.</string>
@@ -119,7 +119,7 @@
 	<string name="engine_update_later">Later</string>
 	<string name="engine_update_downloading">Downloading Update</string>
 	<string name="engine_update_permission_needed">Permission Required</string>
-	<string name="engine_update_permission_message">To install the update, allow Xash3D FWGS to install unknown apps in system settings.</string>
+	<string name="engine_update_permission_message">To install the update, allow Cry of Fear to install unknown apps in system settings.</string>
 	<string name="engine_update_open_settings">Open settings</string>
 	<string name="check_updates">Check for updates</string>
 	<string name="engine_update_checking">Checking for updates…</string>

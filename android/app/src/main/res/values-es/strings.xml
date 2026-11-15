@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-	<string name="app_name" translatable="false">Xash3D FWGS</string>
+	<string name="app_name" translatable="false">Cry of Fear</string>
 	<string name="library">Librería</string>
 	<string name="dedicated_server">Dedicado</string>
 	<string name="app_settings">Ajustes</string>
