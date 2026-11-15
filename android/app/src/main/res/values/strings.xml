@@ -1,19 +1,64 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 	<string name="app_name" translatable="false">Cry of Fear</string>
+	<string name="launch">LAUNCH</string>
+	<string name="info">ABOUT</string>
+	<string name="about_title">About</string>
+	<string name="about_message" translatable="false"><![CDATA[Reverse engineering port of Cry of Fear made by <a href="https://youtube.com/@smrx-smn">SiemON</a>]]></string>
+	<string name="about_github" translatable="false">GitHub</string>
+	<string name="about_source_url" translatable="false">https://github.com/SiemON-SMX/xash3d-fwgs-COF</string>
+	<string name="ok">OK</string>
+	<string name="cancel">Cancel</string>
+	<string name="storage_settings">Storage Settings</string>
+	<string name="no_game_data_found">No game data found</string>
+	<string name="no_game_data_message">Cry of Fear game files were not found. Copy your cryoffear folder to:\n\n%1$s\n\nYou can open this folder from the Files app, it is listed there as Cry of Fear.</string>
+	<string name="keyboard_pans_screen">Keyboard resizes screen</string>
+	<string name="keyboard_pans_screen_summary">Pan the game view when the keyboard is shown</string>
+	<string name="share_engine_log">Share engine.log</string>
+	<string name="engine_log_not_found">engine.log was not found. Run the game with -log enabled, then try again.</string>
+	<string name="engine_log_share_failed">Unable to share engine.log. Make sure a sharing app is installed.</string>
+
+	<string name="discord_rpc">Discord RPC</string>
+	<string name="discord_not_logged_in">Not connected to Discord</string>
+	<string name="discord_logged_in">Logged in as %1$s</string>
+	<string name="discord_connecting">Connecting to Discord…</string>
+	<string name="discord_connected">Connected to Discord Gateway</string>
+	<string name="discord_disconnected">Disconnected from Discord</string>
+	<string name="discord_error">Discord error: %1$s</string>
+	<string name="discord_login_web_button">Sign In with Discord</string>
+	<string name="discord_connect_button">Start Discord RPC</string>
+	<string name="discord_disconnect_button">Stop Discord RPC</string>
+	<string name="discord_logout_button">Log Out</string>
+	<string name="discord_logout_confirm_title">Log out of Discord?</string>
+	<string name="discord_logout_confirm_message">This will remove your saved Discord token and user information.</string>
+	<string name="discord_token_hint">Discord User Token</string>
+	<string name="discord_token_save">Save Token</string>
+	<string name="discord_token_paste">Paste</string>
+	<string name="discord_token_saved">Token saved successfully</string>
+	<string name="discord_token_empty_error">Please enter a valid Discord token</string>
+	<string name="discord_token_help">Sign in above or paste your Discord user token manually.</string>
+	<string name="discord_auto_connect">Auto-connect Discord RPC on game launch</string>
+	<string name="discord_preview_title">PLAYING A GAME</string>
+	<string name="discord_game_name" translatable="false">Cry of Fear</string>
+	<string name="discord_in_menus">In Menus</string>
+	<string name="discord_singleplayer">Singleplayer</string>
+	<string name="discord_service_channel_name">Discord RPC</string>
+	<string name="discord_service_channel_desc">Cry of Fear Discord Rich Presence background service</string>
+	<string name="discord_service_running">Discord Rich Presence Active</string>
+	<string name="discord_login_title">Discord Sign In</string>
 	<string name="library">Library</string>
 	<string name="dedicated_server">Dedicated</string>
 	<string name="app_settings">Settings</string>
 	<string name="game_settings">Game Settings</string>
-	<string name="game_settings_command_line">Command-line arguments</string>
-	<string name="game_settings_volume_buttons">Use volume buttons in-game</string>
+	<string name="game_settings_command_line">Command-line Arguments</string>
+	<string name="game_settings_volume_buttons">Use volume buttons</string>
 	<string name="game_settings_yapb_bots">Enable YaPB bots (CS only)</string>
 	<string name="preferences_package_name">Libraries package</string>
 	<string name="preferences_separate_libraries">Libraries from separate packages</string>
 	<string name="preferences_client_package">Client package</string>
 	<string name="preferences_server_package">Server package</string>
 	<string name="preferences_use_icons">Use icons instead of backgrounds</string>
-	<string name="game_data_location">Game data location</string>
+	<string name="game_data_location">Default data location</string>
 	<string name="game_data_location_not_local_storage">This folder is not located on the device\'s storage. Cloud services and virtual folders cannot be used as a game data location. Choose a folder on the internal storage or a mounted SD card.</string>
 	<string name="game_data_location_invalid_path">Could not resolve the selected folder to a real directory path. Try selecting it again.</string>
 	<string name="game_data_location_volume_root">The root of a storage cannot be used as the game data location. Create a folder inside it (for example, xash) and select that folder instead.</string>
@@ -45,7 +90,7 @@
 	<string name="crash_logs">Crash logs</string>
 	<string name="crash_logs_empty">No crash logs recorded</string>
 	<string name="crash_log_delete">Delete</string>
-	<string name="crash_email_subject" translatable="false">Cry of Fear crash report</string>
+	<string name="crash_email_subject" translatable="false">Xash3D FWGS crash report</string>
 	<string name="crash_email_body">Crash details are attached. Please describe in as much detail as possible what you were doing when the game crashed — every little thing helps us fix it!</string>
 	<string name="crash_no_mail_app_title">No mail app found</string>
 	<string name="crash_no_mail_app_message">No email client is installed on this device. Install one (or use Share to send the report another way) and try again.</string>
@@ -74,7 +119,7 @@
 	<string name="engine_update_later">Later</string>
 	<string name="engine_update_downloading">Downloading Update</string>
 	<string name="engine_update_permission_needed">Permission Required</string>
-	<string name="engine_update_permission_message">To install the update, allow Cry of Fear to install unknown apps in system settings.</string>
+	<string name="engine_update_permission_message">To install the update, allow Xash3D FWGS to install unknown apps in system settings.</string>
 	<string name="engine_update_open_settings">Open settings</string>
 	<string name="check_updates">Check for updates</string>
 	<string name="engine_update_checking">Checking for updates…</string>

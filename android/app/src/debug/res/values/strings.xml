@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-	<string name="app_name" translatable="false">Cry of Fear (Test)</string>
-	<string name="authority" translatable="false">su.xash.cryoffear.test.documents</string>
+	<string name="app_name" translatable="false">Cry of Fear</string>
+	<string name="authority" translatable="false">su.xash.cryoffear.documents</string>
 </resources>

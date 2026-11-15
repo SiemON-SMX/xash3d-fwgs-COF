@@ -1,18 +1,40 @@
 <resources>
 
 	<style name="Theme.App" parent="Theme.Material3.Dark.NoActionBar">
-		<item name="colorPrimary">@color/hl_orange</item>
+		<item name="colorPrimary">@color/mono_light</item>
 		<item name="colorPrimaryDark">@color/hl_dark_grey</item>
-		<!--        <item name="colorPrimaryContainer">@color/valve_red</item>-->
-		<item name="colorSurface">@color/hl_grey</item>
-		<item name="colorSurfaceVariant">@color/hl_grey</item>
-		<item name="android:colorBackground">@color/hl_dark_grey</item>
-		<item name="colorControlNormal">@color/hl_orange</item>
 		<item name="colorOnPrimary">@color/hl_dark_grey</item>
-		<!--        <item name="colorOnPrimaryContainer">@android:color/white</item>-->
-		<!--        <item name="colorOnSurface">@android:color/white</item>-->
-		<!--        <item name="colorOnSurfaceVariant">@android:color/white</item>-->
+		<item name="colorPrimaryContainer">@color/mono_container</item>
+		<item name="colorOnPrimaryContainer">@color/mono_white</item>
+		<item name="colorPrimaryInverse">@color/hl_grey</item>
 
-		<!--        <item name="shapeAppearanceMediumComponent">@style/ShapeAppearance.App.MediumComponent</item>-->
+		<item name="colorSecondary">@color/mono_mid</item>
+		<item name="colorOnSecondary">@color/hl_dark_grey</item>
+		<item name="colorSecondaryContainer">@color/mono_container</item>
+		<item name="colorOnSecondaryContainer">@color/mono_white</item>
+
+		<item name="colorTertiary">@color/mono_mid</item>
+		<item name="colorOnTertiary">@color/hl_dark_grey</item>
+		<item name="colorTertiaryContainer">@color/mono_container</item>
+		<item name="colorOnTertiaryContainer">@color/mono_white</item>
+
+		<item name="android:colorBackground">@color/hl_dark_grey</item>
+		<item name="colorOnBackground">@color/mono_light</item>
+		<item name="colorSurface">@color/hl_grey</item>
+		<item name="colorOnSurface">@color/mono_light</item>
+		<item name="colorSurfaceVariant">@color/hl_grey</item>
+		<item name="colorOnSurfaceVariant">@color/mono_mid</item>
+		<item name="colorSurfaceContainerLowest">@color/mono_surface_lowest</item>
+		<item name="colorSurfaceContainerLow">@color/mono_surface_low</item>
+		<item name="colorSurfaceContainer">@color/mono_surface_mid</item>
+		<item name="colorSurfaceContainerHigh">@color/mono_surface_high</item>
+		<item name="colorSurfaceContainerHighest">@color/mono_surface_highest</item>
+		<item name="colorOutline">@color/mono_dim</item>
+		<item name="colorOutlineVariant">@color/mono_line</item>
+
+		<item name="colorControlNormal">@color/mono_light</item>
+		<item name="colorControlActivated">@color/mono_light</item>
+		<item name="colorAccent">@color/mono_light</item>
+		<item name="android:colorAccent">@color/mono_light</item>
 	</style>
 </resources>

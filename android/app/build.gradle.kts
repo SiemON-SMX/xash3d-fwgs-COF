@@ -9,7 +9,7 @@ plugins {
 }
 
 extensions.configure<ApplicationExtension> {
-	namespace = "su.xash.engine"
+	namespace = "su.xash.cryoffear"
 	ndkVersion = "29.0.14206865"
 	compileSdk = 35
 
@@ -60,14 +60,6 @@ extensions.configure<ApplicationExtension> {
 		buildConfig = true
 	}
 
-	signingConfigs {
-		create("androidDebugKey") {
-			storeFile = File(projectDir.parentFile, "debug.keystore")
-			storePassword = "android"
-			keyAlias = "androiddebugkey"
-			keyPassword = "android"
-		}
-	}
 
 	lint {
 		abortOnError = false
@@ -98,7 +90,6 @@ extensions.configure<ApplicationExtension> {
 			isMinifyEnabled = false
 			isShrinkResources = false
 			isDebuggable = true
-			applicationIdSuffix = ".test"
 			proguardFiles(
 				getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
 			)
@@ -120,9 +111,7 @@ extensions.configure<ApplicationExtension> {
 
 		register("continuous") {
 			initWith(getByName("release"))
-			applicationIdSuffix = ".test"
-			buildConfigField("boolean", "ENABLE_AUTO_UPDATE", "true")
-			signingConfig = signingConfigs.getByName("androidDebugKey")
+			buildConfigField("boolean", "ENABLE_AUTO_UPDATE", "false")
 		}
 	}
 }

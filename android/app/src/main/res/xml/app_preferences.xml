@@ -2,22 +2,48 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
 	xmlns:app="http://schemas.android.com/apk/res-auto"
 	xmlns:tools="http://schemas.android.com/tools">
-	<su.xash.engine.ui.settings.GamePathPreference
-		app:key="game_path"
-		app:layout="@layout/preference_game_path"
-		app:title="@string/game_data_location"
-		tools:summary="/storage/emulated/0/xash" />
 
-	<SwitchPreferenceCompat
-		app:key="use_icons"
-		app:layout="@layout/switch_preference"
-		app:title="@string/preferences_use_icons" />
+	<PreferenceCategory app:title="@string/storage_settings">
+		<Preference
+			app:icon="@drawable/ic_outline_folder_24"
+			app:key="game_path"
+			app:persistent="false"
+			app:selectable="false"
+			app:title="@string/game_data_location"
+			tools:summary="/storage/emulated/0/Android/data/su.xash.cryoffear/files" />
+	</PreferenceCategory>
 
-	<Preference
-		app:key="crash_logs"
-		app:title="@string/crash_logs" />
+	<PreferenceCategory app:title="@string/game_settings">
+		<SwitchPreferenceCompat
+			app:defaultValue="false"
+			app:icon="@drawable/ic_outline_volume_up_24"
+			app:key="use_volume_buttons"
+			app:title="@string/game_settings_volume_buttons" />
 
-	<Preference
-		app:key="check_updates"
-		app:title="@string/check_updates" />
+		<EditTextPreference
+			app:defaultValue="-console -log"
+			app:icon="@drawable/ic_outline_terminal_24"
+			app:key="arguments"
+			app:title="@string/game_settings_command_line"
+			app:useSimpleSummaryProvider="true" />
+
+		<SwitchPreferenceCompat
+			app:defaultValue="true"
+			app:icon="@drawable/ic_outline_keyboard_24"
+			app:key="keyboard_pans_screen"
+			app:summary="@string/keyboard_pans_screen_summary"
+			app:title="@string/keyboard_pans_screen" />
+
+		<Preference
+			app:icon="@drawable/ic_outline_bug_report_24"
+			app:key="share_engine_log"
+			app:persistent="false"
+			app:title="@string/share_engine_log" />
+
+		<Preference
+			app:icon="@drawable/ic_outline_info_24"
+			app:key="crash_logs"
+			app:persistent="false"
+			app:title="@string/crash_logs" />
+	</PreferenceCategory>
 </PreferenceScreen>

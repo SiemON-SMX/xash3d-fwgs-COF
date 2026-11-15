@@ -22,5 +22,5 @@ dependencyResolutionManagement {
 	}
 }
 
-rootProject.name = "Xash3D FWGS"
+rootProject.name = "Cry of Fear"
 include(":app")

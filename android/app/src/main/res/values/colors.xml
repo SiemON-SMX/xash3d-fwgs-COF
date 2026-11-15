@@ -1,9 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-	<color name="valve_red">#F74843</color>
-	<color name="hl_orange">#FB7E14</color>
 	<color name="black">#000000</color>
 	<color name="hl_dark_grey">#151515</color>
 	<color name="hl_grey">#292929</color>
+	<color name="mono_white">#FFFFFF</color>
+	<color name="mono_light">#E0E0E0</color>
+	<color name="mono_mid">#BDBDBD</color>
+	<color name="mono_dim">#8A8A8A</color>
+	<color name="mono_line">#444444</color>
+	<color name="mono_container">#3D3D3D</color>
+	<color name="mono_surface_lowest">#101010</color>
+	<color name="mono_surface_low">#1C1C1C</color>
+	<color name="mono_surface_mid">#202020</color>
+	<color name="mono_surface_high">#2A2A2A</color>
+	<color name="mono_surface_highest">#333333</color>
+	<color name="valve_red">#F74843</color>
+	<color name="discord_dark">#2A2A2A</color>
+	<color name="discord_card_dark">#1E1E1E</color>
+	<color name="discord_green">#57F287</color>
+	<color name="discord_red">#ED4245</color>
+	<color name="discord_subtext">#9A9A9A</color>
 </resources>
-

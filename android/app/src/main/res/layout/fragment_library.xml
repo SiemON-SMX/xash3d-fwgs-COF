@@ -1,23 +1,57 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.swiperefreshlayout.widget.SwipeRefreshLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
 	xmlns:app="http://schemas.android.com/apk/res-auto"
 	xmlns:tools="http://schemas.android.com/tools"
-	android:id="@+id/swipeRefresh"
 	android:layout_width="match_parent"
-	android:layout_height="match_parent">
+	android:layout_height="match_parent"
+	android:orientation="vertical">
 
-	<RelativeLayout
+	<androidx.fragment.app.FragmentContainerView
+		android:id="@+id/settingsFragment"
 		android:layout_width="match_parent"
-		android:layout_height="match_parent">
+		android:layout_height="0dp"
+		android:layout_weight="1"
+		tools:layout="@android:layout/list_content" />
 
-		<androidx.recyclerview.widget.RecyclerView
-			android:id="@+id/gamesList"
-			android:layout_width="match_parent"
-			android:layout_height="match_parent"
-			android:clipToPadding="false"
-			android:paddingHorizontal="8dp"
-			app:layoutManager="LinearLayoutManager"
-			tools:listitem="@layout/card_game" />
-	</RelativeLayout>
+	<LinearLayout
+		android:id="@+id/bottomButtonsContainer"
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:gravity="end"
+		android:orientation="horizontal"
+		android:padding="16dp">
 
-</androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+		<com.google.android.material.button.MaterialButton
+			android:id="@+id/infoButton"
+			android:layout_width="0dp"
+			android:layout_height="wrap_content"
+			android:layout_weight="1"
+			android:paddingTop="12dp"
+			android:paddingBottom="12dp"
+			android:text="@string/info"
+			android:textColor="@color/mono_light"
+			app:backgroundTint="@color/hl_grey"
+			app:cornerRadius="16dp"
+			app:icon="@drawable/ic_outline_info_24"
+			app:iconPadding="8dp"
+			app:iconTint="@color/mono_light" />
+
+		<com.google.android.material.button.MaterialButton
+			android:id="@+id/runButton"
+			android:layout_width="0dp"
+			android:layout_height="wrap_content"
+			android:layout_marginStart="8dp"
+			android:layout_weight="1"
+			android:paddingTop="12dp"
+			android:paddingBottom="12dp"
+			android:text="@string/launch"
+			android:textColor="@color/mono_light"
+			app:backgroundTint="@color/hl_grey"
+			app:cornerRadius="16dp"
+			app:icon="@drawable/ic_baseline_play_arrow_24"
+			app:iconPadding="8dp"
+			app:iconTint="@color/mono_light" />
+
+	</LinearLayout>
+
+</LinearLayout>
