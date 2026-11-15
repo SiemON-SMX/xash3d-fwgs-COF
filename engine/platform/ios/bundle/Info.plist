@@ -9,11 +9,11 @@
 	<key>CFBundleExecutable</key>
 	<string>xash</string>
 	<key>CFBundleIdentifier</key>
-	<string>su.xash.engine</string>
+	<string>su.xash.cryoffear</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-	<string>xash3d-fwgs</string>
+	<string>Cry of Fear</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>

@@ -30,7 +30,7 @@ export PKG_CONFIG_PATH=$PWD/ffmpeg/lib/pkgconfig:${ARCH_TRIPLET[$GH_CPU_ARCH]}
 export CC=${CROSS_COMPILE_CC[$GH_CPU_ARCH]}
 export CXX=${CROSS_COMPILE_CXX[$GH_CPU_ARCH]}
 
-APP=xash3d-fwgs
+APP=cry-of-fear
 APPDIR=$APP.AppDir
 APPIMAGE=$APP-$ARCH.AppImage
 
@@ -92,6 +92,22 @@ deploy_engine()
 	if [ -d "ffmpeg" ]; then
 		cp -av ffmpeg/lib/libav* ffmpeg/lib/libsw* "$APPDIR/"
 	fi
+
+	pushd hlsdk-portable || die
+	HLSDK_EXTRA_ARGS=""
+	if [ "$ARCH" = "amd64" ]; then
+		HLSDK_EXTRA_ARGS="-8"
+	fi
+	./waf configure -T release --disable-werror $HLSDK_EXTRA_ARGS || die_configure
+	./waf build || die
+	./waf install --destdir="$BUILDDIR/$APPDIR" || die
+	popd || die
+
+	if [ -d "$APPDIR/valve" ]; then
+		mkdir -p "$APPDIR/CryOfFear"
+		cp -r "$APPDIR/valve/"* "$APPDIR/CryOfFear/"
+		rm -rf "$APPDIR/valve"
+	fi
 }
 
 build_appimage()
@@ -100,7 +116,7 @@ build_appimage()
 
 	cp scripts/gha/linux/AppRun "$APPDIR/AppRun"
 	cp scripts/gha/linux/xash3d-fwgs.desktop "$APPDIR/$APP.desktop"
-	wget "https://raw.githubusercontent.com/FWGS/fwgs-artwork/master/xash3d/icon_512.png" -O "$APPDIR/$APP.png"
+	cp game_launch/icon-xash-material.png "$APPDIR/$APP.png"
 
 	chmod +x "$APPDIR"/AppRun # Engine launcher & engine launcher script
 	echo "Contents of AppImage: "

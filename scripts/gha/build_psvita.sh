@@ -21,7 +21,7 @@ cd "$BUILDDIR" || die
 
 rm -rf artifacts build pkgtemp
 
-mkdir -p pkgtemp/data/xash3d/{valve,gearbox,bshift}/{dlls,cl_dlls} || die
+mkdir -p pkgtemp/data/xash3d/CryOfFear/{dlls,cl_dlls} || die
 mkdir -p artifacts/ || die
 
 echo "Building vitaGL..."
@@ -53,18 +53,20 @@ cp build/engine/xash.vpk pkgtemp/
 echo "Building HLSDK..."
 
 pushd hlsdk-portable || die
-build_hlsdk mobile_hacks valve
-build_hlsdk opfor gearbox
+build_hlsdk CryOfFear CryOfFear
 popd || die
 
-# bshift can be used from mobile_hacks branch
 pushd pkgtemp/data/xash3d || die
-cp -v valve/dlls/hl_psvita_armv7hf.so bshift/dlls/bshift_psvita_armv7hf.so
+if [ -d "valve" ]; then
+	mkdir -p CryOfFear
+	cp -r valve/* CryOfFear/
+	rm -rf valve
+fi
 popd || die
 
 echo "Generating default config files..."
 
-pushd pkgtemp/data/xash3d/valve || die
+pushd pkgtemp/data/xash3d/CryOfFear || die
 
 touch config.cfg
 echo 'unbindall'                                     >> config.cfg
@@ -82,13 +84,10 @@ echo 'r_refdll "gl"'  >> video.cfg
 touch opengl.cfg
 echo 'gl_nosort "1"'  >> opengl.cfg
 
-cp ./*.cfg ../gearbox/
-cp ./*.cfg ../bshift/
-
 popd || die
 
 echo "Packaging artifacts..."
 
 pushd pkgtemp || die
-7z a -t7z ../artifacts/xash3d-fwgs-psvita.7z -m0=lzma2 -mx=9 -mfb=64 -md=32m -ms=on -r xash.vpk data/
+7z a -t7z ../artifacts/cry-of-fear-psvita.7z -m0=lzma2 -mx=9 -mfb=64 -md=32m -ms=on -r xash.vpk data/
 popd || die

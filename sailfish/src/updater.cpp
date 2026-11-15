@@ -25,9 +25,9 @@ GNU General Public License for more details.
 #include "settings.h"
 #include "updater.h"
 
-#define RELEASE_API_URL  "https://api.github.com/repos/FWGS/xash3d-fwgs/releases/tags/continuous"
-#define COMPARE_API_URL  "https://api.github.com/repos/FWGS/xash3d-fwgs/compare/"
-#define RELEASE_PAGE_URL "https://github.com/FWGS/xash3d-fwgs/releases/tag/continuous"
+#define RELEASE_API_URL  "https://api.github.com/repos/SiemON-SMX/xash3d-fwgs-COF/releases/tags/continuous"
+#define COMPARE_API_URL  "https://api.github.com/repos/SiemON-SMX/xash3d-fwgs-COF/compare/"
+#define RELEASE_PAGE_URL "https://github.com/SiemON-SMX/xash3d-fwgs-COF/releases/tag/continuous"
 
 // same rules as the Android launcher
 #define STALENESS_DAYS         3  // remote build must be this much newer to be offered

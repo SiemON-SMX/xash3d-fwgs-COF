@@ -30,3 +30,5 @@ if [ -f ffmpeg.zip ]; then
 	unzip -x ffmpeg.zip
 	mv "$FFMPEG_ARCHIVE" ffmpeg
 fi
+
+git clone --depth 1 --recursive https://github.com/SiemON-SMX/hlsdk-portable -b CryOfFear hlsdk-portable || die

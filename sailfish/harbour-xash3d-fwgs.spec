@@ -9,7 +9,7 @@ Version: 0.21
 Release: %{buildnum}
 Group: Amusements/Games
 License: GPLv3+
-URL: https://github.com/FWGS/xash3d-fwgs
+URL: https://github.com/SiemON-SMX/xash3d-fwgs-COF
 Source0: %{name}-%{version}.tar.gz
 Source1: hlsdk-portable.tar.gz
 BuildRequires: python3-base

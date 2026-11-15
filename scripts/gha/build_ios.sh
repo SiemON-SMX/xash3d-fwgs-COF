@@ -14,7 +14,13 @@ cmake -DCMAKE_SYSTEM_NAME=iOS -DCMAKE_OSX_DEPLOYMENT_TARGET=12.0 -DCMAKE_INSTALL
 cmake --build build --target install || die
 popd || die
 
+if [ -d "build/ios/libs/valve" ]; then
+	mkdir -p build/ios/libs/CryOfFear
+	cp -r build/ios/libs/valve/* build/ios/libs/CryOfFear/
+	rm -rf build/ios/libs/valve
+fi
+
 ./scripts/ios/createipa.sh
 
 mkdir -p artifacts/
-mv "build/xash3d.ipa" "artifacts/xash3d-fwgs-ios-arm64.ipa"
+mv "build/xash3d.ipa" "artifacts/cry-of-fear-ios-arm64.ipa"
