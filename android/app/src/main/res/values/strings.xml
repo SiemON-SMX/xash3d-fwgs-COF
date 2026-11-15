@@ -94,7 +94,6 @@
 	<string name="keep">Keep</string>
 	<string name="download_complete">Download Complete</string>
 	<string name="download_cancelled">Download cancelled</string>
-	<string name="cancel">Cancel</string>
 	<string name="no_game_data_download_message">Cry of Fear game data was not found in:\n\n%1$s\n\nWould you like to download it from Steam now?</string>
 	<string name="download_error">An error occurred while downloading game libraries.</string>
 	<string name="update_available">Update Available</string>
