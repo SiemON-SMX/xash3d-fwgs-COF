@@ -62,5 +62,18 @@
 			app:key="crash_logs"
 			app:persistent="false"
 			app:title="@string/crash_logs" />
+
+		<Preference
+			app:icon="@drawable/ic_baseline_refresh_24"
+			app:key="check_updates"
+			app:persistent="false"
+			app:title="@string/check_updates" />
+
+		<Preference
+			app:icon="@drawable/ic_baseline_download_24"
+			app:key="steam_cm_server"
+			app:persistent="false"
+			app:summary="@string/steam_cm_summary_default"
+			app:title="@string/steam_cm_change_button" />
 	</PreferenceCategory>
 </PreferenceScreen>

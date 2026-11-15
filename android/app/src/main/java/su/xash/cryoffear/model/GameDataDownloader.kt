@@ -229,7 +229,83 @@ Log.d("SteamCM", "[LOGON] field 7 (client_os_type=-500 AndroidUnknown) tag=${f7[
         val estimatedSize: Long
     )
 
+    data class CMServerChoice(
+        val title: String,
+        val host: String?,
+        val port: Int?,
+        val isDefault: Boolean = false,
+        val isSelected: Boolean = false
+    ) {
+        val endpoint: String? get() = if (!host.isNullOrBlank() && port != null) "$host:$port" else null
+    }
+
     private val firstRunPrefs = ctx.getSharedPreferences("game_data_downloader", Context.MODE_PRIVATE)
+
+    fun getPreferredCMServer(): Pair<String, Int>? {
+        val host = firstRunPrefs.getString("preferred_cm_host", null) ?: return null
+        val port = firstRunPrefs.getInt("preferred_cm_port", 0)
+        return if (port in 1..65535) host to port else null
+    }
+
+    fun setPreferredCMServer(choice: CMServerChoice) {
+        val editor = firstRunPrefs.edit()
+        if (choice.isDefault || choice.host.isNullOrBlank() || choice.port == null || choice.port !in 1..65535) {
+            editor.remove("preferred_cm_host").remove("preferred_cm_port")
+        } else {
+            editor.putString("preferred_cm_host", choice.host).putInt("preferred_cm_port", choice.port)
+        }
+        editor.apply()
+    }
+
+    private fun discoverCMServers(): List<Pair<String, Int>> {
+        var connection: HttpURLConnection? = null
+        return try {
+            connection = URL("https://api.steampowered.com/ISteamDirectory/GetCMListForConnect/v1/?maxcount=100")
+                .openConnection() as HttpURLConnection
+            connection.connectTimeout = 5000
+            connection.readTimeout = 5000
+            connection.setRequestProperty("User-Agent", "CryOfFearLauncher/1.0")
+            val response = connection.inputStream.bufferedReader().use { it.readText() }
+            val servers = org.json.JSONObject(response)
+                .getJSONObject("response")
+                .getJSONArray("serverlist")
+            buildList {
+                for (index in 0 until servers.length()) {
+                    val server = servers.getJSONObject(index)
+                    if (server.optString("type") != "netfilter") continue
+                    val endpoint = server.optString("endPoint", server.optString("endpoint"))
+                    val separator = endpoint.lastIndexOf(':')
+                    if (separator <= 0) continue
+                    val host = endpoint.substring(0, separator).trim('[', ']')
+                    val port = endpoint.substring(separator + 1).toIntOrNull() ?: continue
+                    if (host.isNotBlank() && port in 1..65535) add(host to port)
+                }
+            }.also {
+                Log.i("SteamCM", "Steam Directory returned ${it.size} TCP CM servers")
+            }
+        } catch (e: Exception) {
+            Log.w("SteamCM", "Steam Directory lookup failed: ${e.message}")
+            emptyList()
+        } finally {
+            connection?.disconnect()
+        }
+    }
+
+    suspend fun getCMServerChoices(): List<CMServerChoice> = withContext(Dispatchers.IO) {
+        val servers = (discoverCMServers() + listOf("ext1-sea1.steamserver.net" to 27017) + CM_SERVERS).distinct().toMutableList()
+        val preferred = getPreferredCMServer()
+        if (preferred != null && preferred !in servers) {
+            servers.add(0, preferred)
+        }
+        val defaultServer = servers.firstOrNull() ?: ("ext1-sea1.steamserver.net" to 27017)
+        val defaultIsSelected = preferred == null || preferred == defaultServer
+        buildList {
+            add(CMServerChoice("Default: ${defaultServer.first}:${defaultServer.second}", null, null, true, defaultIsSelected))
+            servers.filter { it != defaultServer }.forEach { (host, port) ->
+                add(CMServerChoice("$host:$port", host, port, isSelected = preferred == (host to port)))
+            }
+        }
+    }
 
     fun findMissingGames(basedir: File): List<String> {
         val missing = mutableListOf<String>()
@@ -524,28 +600,36 @@ Log.d("SteamCM", "[LOGON] field 7 (client_os_type=-500 AndroidUnknown) tag=${f7[
         private var currentSessionId: Int = 0
         private var currentSteamId: Long = ANON_STEAM_ID
 
-        suspend fun connect() = suspendCancellableCoroutine<Unit> { cont ->
-            try {
-                for ((host, port) in CM_SERVERS) {
-                    try {
-                        Log.d("SteamCM", "Connecting to $host:$port...")
-                        val sock = Socket()
-                        sock.connect(InetSocketAddress(host, port), 10000)
-                        sock.soTimeout = 5000
-                        socket = sock
-                        input = sock.getInputStream()
-                        output = sock.getOutputStream()
-                        Log.d("SteamCM", "Connected to $host:$port!")
-                        onStatus("Connected to Steam")
-                        cont.resume(Unit)
-                        return@suspendCancellableCoroutine
-                    } catch (e: Exception) {
-                        Log.d("SteamCM", "Failed $host:$port: ${e.message}")
+        suspend fun connect() {
+            onStatus("Finding Steam servers...")
+            val discovered = withContext(Dispatchers.IO) {
+                discoverCMServers()
+            }
+            val preferred = getPreferredCMServer()
+            val candidates = (listOfNotNull(preferred) + discovered + listOf("ext1-sea1.steamserver.net" to 27017) + CM_SERVERS).distinct()
+            suspendCancellableCoroutine<Unit> { cont ->
+                try {
+                    for ((host, port) in candidates) {
+                        try {
+                            Log.d("SteamCM", "Connecting to $host:$port...")
+                            val sock = Socket()
+                            sock.connect(InetSocketAddress(host, port), 5000)
+                            sock.soTimeout = 5000
+                            socket = sock
+                            input = sock.getInputStream()
+                            output = sock.getOutputStream()
+                            Log.d("SteamCM", "Connected to $host:$port!")
+                            onStatus("Connected to Steam")
+                            cont.resume(Unit)
+                            return@suspendCancellableCoroutine
+                        } catch (e: Exception) {
+                            Log.d("SteamCM", "Failed $host:$port: ${e.message}")
+                        }
                     }
+                    cont.resumeWithException(Exception("No Steam CM server reachable, try changing SteamCM server in Settings"))
+                } catch (e: Exception) {
+                    cont.resumeWithException(e)
                 }
-                cont.resumeWithException(Exception("No Steam CM server reachable"))
-            } catch (e: Exception) {
-                cont.resumeWithException(e)
             }
         }
 
