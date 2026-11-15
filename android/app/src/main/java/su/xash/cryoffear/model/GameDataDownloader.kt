@@ -1062,7 +1062,7 @@ Log.d("SteamCM", "[LOGON] field 7 (client_os_type=-500 AndroidUnknown) tag=${f7[
                                 }
                             }
                             if (msgBody != null) {
-                                var subData = msgBody
+                                var subData: ByteArray = msgBody
                                 if (sizeUnzipped > 0u) {
                                     GZIPInputStream(ByteArrayInputStream(msgBody)).use { gis ->
                                         subData = gis.readBytes()
