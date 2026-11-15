@@ -96,6 +96,7 @@
 	<string name="download_cancelled">Download cancelled</string>
 	<string name="no_game_data_download_message">Cry of Fear game data was not found in:\n\n%1$s\n\nWould you like to download it from Steam now?</string>
 	<string name="steam_cm_change_button">SteamCM server</string>
+	<string name="server">Server</string>
 	<string name="steam_cm_summary_default">Automatic (Default)</string>
 	<string name="steam_cm_loading">Loading Steam CM servers…</string>
 	<string name="steam_cm_dialog_title">Change SteamCM server</string>

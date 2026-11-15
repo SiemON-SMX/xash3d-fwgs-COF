@@ -22,7 +22,6 @@ import kotlinx.coroutines.withContext
 import su.xash.cryoffear.BuildConfig
 import su.xash.cryoffear.MainActivity
 import su.xash.cryoffear.R
-import su.xash.cryoffear.model.GameDataDownloader
 import su.xash.cryoffear.util.Prefs
 import java.io.File
 import java.io.FileNotFoundException
@@ -80,66 +79,8 @@ class AppSettingsPreferenceFragment : PreferenceFragmentCompat(),
 			}
 		}
 
-		findPreference<Preference>("steam_cm_server")?.apply {
-			updateSteamCmSummary(this)
-			setOnPreferenceClickListener {
-				showSteamCmServerDialog(it)
-				true
-			}
-		}
-
 		updateArgumentsSummary()
 		updateRenderResolutionSummary()
-	}
-
-	private fun updateSteamCmSummary(preference: Preference) {
-		val preferred = GameDataDownloader(requireContext()).getPreferredCMServer()
-		preference.summary = if (preferred != null) {
-			"${preferred.first}:${preferred.second}"
-		} else {
-			getString(R.string.steam_cm_summary_default)
-		}
-	}
-
-	private fun showSteamCmServerDialog(preference: Preference) {
-		val ctx = requireContext()
-		val downloader = GameDataDownloader(ctx)
-		preference.isEnabled = false
-		preference.summary = getString(R.string.steam_cm_loading)
-		lifecycleScope.launch {
-			try {
-				val choices = downloader.getCMServerChoices()
-				if (!isAdded) return@launch
-				val titles = choices.map { it.title }.toTypedArray()
-				val checkedIndex = choices.indexOfFirst { it.isSelected }.coerceAtLeast(0)
-				MaterialAlertDialogBuilder(requireContext())
-					.setTitle(R.string.steam_cm_dialog_title)
-					.setSingleChoiceItems(titles, checkedIndex) { dialog, index ->
-						val chosen = choices[index]
-						downloader.setPreferredCMServer(chosen)
-						updateSteamCmSummary(preference)
-						Toast.makeText(
-							requireContext(),
-							if (chosen.isDefault) R.string.steam_cm_default_selected else R.string.steam_cm_server_selected,
-							Toast.LENGTH_SHORT
-						).show()
-						dialog.dismiss()
-					}
-					.setNegativeButton(android.R.string.cancel, null)
-					.show()
-			} catch (e: CancellationException) {
-				throw e
-			} catch (_: Exception) {
-				if (isAdded) {
-					Toast.makeText(requireContext(), R.string.steam_cm_list_failed, Toast.LENGTH_LONG).show()
-				}
-			} finally {
-				if (isAdded) {
-					preference.isEnabled = true
-					updateSteamCmSummary(preference)
-				}
-			}
-		}
 	}
 
 	private fun openGameDataFolder() {

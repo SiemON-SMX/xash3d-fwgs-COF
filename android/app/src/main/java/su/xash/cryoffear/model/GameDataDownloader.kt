@@ -395,13 +395,21 @@ Log.d("SteamCM", "[LOGON] field 7 (client_os_type=-500 AndroidUnknown) tag=${f7[
             } catch (e: Exception) { throw Exception("[cdn] ${e.message}", e) }
             Log.d("SteamCM", "[download] CDN hosts: $cdnHosts")
 
+            val dynamicManifests = try {
+                onStatus("Fetching game manifest info...")
+                client.requestDepotManifestIds(info.appId)
+            } catch (e: Exception) {
+                Log.w("SteamCM", "[pics] Failed to fetch manifest IDs: ${e.message}")
+                emptyMap()
+            }
+
             data class DepotSetup(val depotId: Int, val manifestId: Long, val depotKey: ByteArray, val requestCode: Long)
             val depots = mutableListOf<DepotSetup>()
             val setupErrors = mutableListOf<String>()
             for (depotId in effectiveIds) {
-                val manifestId = HARDCODED_MANIFEST_IDS[depotId]
+                val manifestId = dynamicManifests[depotId] ?: HARDCODED_MANIFEST_IDS[depotId]
                 if (manifestId == null || manifestId == 0L) {
-                    val reason = "no hardcoded manifest ID"
+                    val reason = "no manifest ID found"
                     setupErrors.add("depot $depotId: $reason")
                     Log.w("SteamCM", "[download] $reason for depot $depotId, skipping")
                     continue
@@ -1012,6 +1020,151 @@ Log.d("SteamCM", "[LOGON] field 7 (client_os_type=-500 AndroidUnknown) tag=${f7[
             } catch (e: Exception) {
                 Log.e("SteamCM", "[license] Exception: ${e.message}")
                 cont.resumeWithException(e)
+            }
+        }
+
+        suspend fun requestDepotManifestIds(appId: Int): Map<Int, Long> =
+            suspendCancellableCoroutine { cont ->
+                try {
+                    val appEntry = ByteArrayOutputStream().apply {
+                        write(Proto.packVarint(1 shl 3 or 0))
+                        write(Proto.packVarint(appId))
+                    }.toByteArray()
+                    val body = ByteArrayOutputStream().apply {
+                        write(Proto.packVarint(2 shl 3 or 2))
+                        write(Proto.packVarint(appEntry.size))
+                        write(appEntry)
+                        write(Proto.packVarint(3 shl 3 or 0))
+                        write(Proto.packVarint(0))
+                    }.toByteArray()
+                    val header = buildProtoHeader(currentSteamId, currentSessionId)
+                    sendProtobufMsg(8903, body, header)
+                    Log.d("SteamCM", "[pics] Requested product info for app $appId")
+
+                    val result = mutableMapOf<Int, Long>()
+                    var done = false
+                    var tries = 0
+                    while (tries < 20 && !done) {
+                        val (emsg, data, _) = readMessage()
+                        if (emsg == 8904) {
+                            parsePicsProductInfoResponse(data, appId, result)
+                            done = true
+                        } else if (emsg == 1) {
+                            val rdr = ProtoReader(data)
+                            var sizeUnzipped = 0u
+                            var msgBody: ByteArray? = null
+                            while (rdr.remaining > 0) {
+                                val tag = rdr.readVarint()
+                                when (tag shr 3) {
+                                    1 -> sizeUnzipped = rdr.readVarint().toUInt()
+                                    2 -> { val len = rdr.readVarint(); msgBody = rdr.readBytes(len) }
+                                    else -> rdr.skipField()
+                                }
+                            }
+                            if (msgBody != null) {
+                                var subData = msgBody
+                                if (sizeUnzipped > 0u) {
+                                    GZIPInputStream(ByteArrayInputStream(msgBody)).use { gis ->
+                                        subData = gis.readBytes()
+                                    }
+                                }
+                                var off2 = 0
+                                while (off2 < subData.size) {
+                                    val subSize = Proto.readInt32LE(subData, off2)
+                                    off2 += 4
+                                    if (subSize <= 0 || off2 + subSize > subData.size) break
+                                    val subMsg = subData.copyOfRange(off2, off2 + subSize)
+                                    off2 += subSize
+                                    val subEmsg = Proto.readInt32LE(subMsg, 0) and 0x7FFFFFFF
+                                    if (subEmsg == 8904) {
+                                        val subHdrLen = Proto.readInt32LE(subMsg, 4)
+                                        val subBody = subMsg.copyOfRange(8 + subHdrLen, subMsg.size)
+                                        parsePicsProductInfoResponse(subBody, appId, result)
+                                        done = true
+                                    }
+                                }
+                            }
+                        }
+                        tries++
+                    }
+                    cont.resume(result)
+                } catch (e: Exception) {
+                    cont.resumeWithException(e)
+                }
+            }
+
+        private fun parsePicsProductInfoResponse(data: ByteArray, targetAppId: Int, out: MutableMap<Int, Long>) {
+            val rdr = ProtoReader(data)
+            while (rdr.remaining > 0) {
+                val tag = rdr.readVarint()
+                val fn = tag shr 3
+                val wt = tag and 0x7
+                if (fn == 1 && wt == 2) {
+                    val len = rdr.readVarint()
+                    val end = rdr.pos + len
+                    var appid = 0
+                    var buffer: ByteArray? = null
+                    while (rdr.pos < end) {
+                        val atag = rdr.readVarint()
+                        val afn = atag shr 3
+                        val awt = atag and 0x7
+                        when {
+                            afn == 1 && awt == 0 -> appid = rdr.readVarint()
+                            afn == 5 && awt == 2 -> {
+                                val blen = rdr.readVarint()
+                                buffer = rdr.readBytes(blen)
+                            }
+                            else -> rdr.skipField()
+                        }
+                    }
+                    if (appid == targetAppId && buffer != null) {
+                        val vdfText = buffer.toString(Charsets.UTF_8)
+                        parseDepotPublicManifestsFromVdf(vdfText, out)
+                    }
+                } else {
+                    rdr.skipField()
+                }
+            }
+        }
+
+        private fun parseDepotPublicManifestsFromVdf(vdf: String, out: MutableMap<Int, Long>) {
+            val tokenRegex = Regex("\"([^\"]*)\"|\\{|\\}")
+            val tokens = tokenRegex.findAll(vdf).map { m ->
+                m.groupValues[1].ifEmpty { m.value }
+            }.toList()
+
+            val stack = mutableListOf<String>()
+            var i = 0
+            while (i < tokens.size) {
+                val tok = tokens[i]
+                when {
+                    tok == "{" -> i++
+                    tok == "}" -> {
+                        if (stack.isNotEmpty()) stack.removeAt(stack.lastIndex)
+                        i++
+                    }
+                    i + 1 < tokens.size && tokens[i + 1] == "{" -> {
+                        stack.add(tok)
+                        i += 2
+                    }
+                    i + 1 < tokens.size -> {
+                        val value = tokens[i + 1]
+                        if (tok == "gid" && stack.size >= 4 &&
+                            stack[stack.size - 1] == "public" &&
+                            stack[stack.size - 2] == "manifests" &&
+                            stack[stack.size - 4] == "depots"
+                        ) {
+                            val depotId = stack[stack.size - 3].toIntOrNull()
+                            val gid = value.toLongOrNull()
+                            if (depotId != null && gid != null) {
+                                out[depotId] = gid
+                                Log.d("SteamCM", "[pics] Found depot $depotId public manifest $gid")
+                            }
+                        }
+                        i += 2
+                    }
+                    else -> i++
+                }
             }
         }
 

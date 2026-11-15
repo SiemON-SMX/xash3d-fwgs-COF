@@ -15,12 +15,14 @@ import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import android.widget.Toast
 import androidx.core.view.MenuProvider
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import su.xash.cryoffear.R
@@ -143,14 +145,52 @@ class LibraryFragment : Fragment(), MenuProvider {
 				.setTitle(R.string.overwrite_confirm_title)
 				.setMessage(getString(R.string.overwrite_confirm_message, info.displayName))
 				.setPositiveButton(R.string.overwrite) { _, _ -> beginCryOfFearDownload(gamedir) }
+				.setNeutralButton(R.string.server) { _, _ -> showSteamCmServerDialog { startCryOfFearDownload() } }
 				.setNegativeButton(R.string.keep, null)
 				.show()
 		} else {
 			MaterialAlertDialogBuilder(ctx)
 				.setTitle(R.string.install_cryoffear_title)
 				.setPositiveButton(android.R.string.yes) { _, _ -> beginCryOfFearDownload(gamedir) }
+				.setNeutralButton(R.string.server) { _, _ -> showSteamCmServerDialog { startCryOfFearDownload() } }
 				.setNegativeButton(android.R.string.no, null)
 				.show()
+		}
+	}
+
+	private fun showSteamCmServerDialog(onDone: () -> Unit) {
+		val ctx = requireContext()
+		val downloader = GameDataDownloader(ctx)
+		Toast.makeText(ctx, R.string.steam_cm_loading, Toast.LENGTH_SHORT).show()
+		viewLifecycleOwner.lifecycleScope.launch {
+			try {
+				val choices = downloader.getCMServerChoices()
+				if (!isAdded) return@launch
+				val titles = choices.map { it.title }.toTypedArray()
+				val checkedIndex = choices.indexOfFirst { it.isSelected }.coerceAtLeast(0)
+				MaterialAlertDialogBuilder(requireContext())
+					.setTitle(R.string.steam_cm_dialog_title)
+					.setSingleChoiceItems(titles, checkedIndex) { dialog, index ->
+						val chosen = choices[index]
+						downloader.setPreferredCMServer(chosen)
+						Toast.makeText(
+							requireContext(),
+							if (chosen.isDefault) R.string.steam_cm_default_selected else R.string.steam_cm_server_selected,
+							Toast.LENGTH_SHORT
+						).show()
+						dialog.dismiss()
+						onDone()
+					}
+					.setNegativeButton(android.R.string.cancel) { _, _ -> onDone() }
+					.show()
+			} catch (e: CancellationException) {
+				throw e
+			} catch (_: Exception) {
+				if (isAdded) {
+					Toast.makeText(requireContext(), R.string.steam_cm_list_failed, Toast.LENGTH_LONG).show()
+					onDone()
+				}
+			}
 		}
 	}
 
