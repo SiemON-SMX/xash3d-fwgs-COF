@@ -101,6 +101,7 @@ CVAR_DEFINE_AUTO( cl_ticket_generator, "revemu2013", FCVAR_ARCHIVE|FCVAR_PRIVILE
 static CVAR_DEFINE_AUTO( cl_advertise_engine_in_name, "1", FCVAR_ARCHIVE|FCVAR_PRIVILEGED, "add [Xash3D] to the nickname when connecting to GoldSrc servers" );
 static CVAR_DEFINE_AUTO( cl_log_outofband, "0", FCVAR_ARCHIVE, "log out of band messages, can be useful for server admins and for engine debugging" );
 static CVAR_DEFINE_AUTO( cl_autorecord, "0", 0, "automatically start recording a demo after joining the server" );
+static CVAR_DEFINE_AUTO( r_dynamiclight, "1", FCVAR_ARCHIVE, "unused, only so goldsrc configs don't warn" );
 
 client_t		cl;
 client_static_t	cls;
@@ -3665,6 +3666,10 @@ static void CL_ListMessages_f( void )
 CL_InitLocal
 =================
 */
+static void CL_TextureMode_f( void )
+{
+}
+
 static void CL_InitLocal( void )
 {
 	cls.state = ca_disconnected;
@@ -3675,6 +3680,7 @@ static void CL_InitLocal( void )
 	cl.resourcesonhand.pNext = cl.resourcesonhand.pPrev = &cl.resourcesonhand;
 
 	Cvar_RegisterVariable( &cl_ticket_generator );
+	Cvar_RegisterVariable( &r_dynamiclight );
 	Cvar_RegisterVariable( &cl_advertise_engine_in_name );
 	Cvar_RegisterVariable( &cl_log_outofband );
 	Cvar_RegisterVariable( &cl_autorecord );
@@ -3778,6 +3784,7 @@ static void CL_InitLocal( void )
 	Cmd_AddRestrictedCommand( "localservers", CL_LocalServers_f, "collect info about local servers" );
 	Cmd_AddRestrictedCommand( "internetservers", CL_InternetServers_f, "collect info about internet servers" );
 	Cmd_AddRestrictedCommand( "ui_queryserver", CL_QueryServer_f, "query server info from console" );
+	Cmd_AddCommand( "gl_texturemode", CL_TextureMode_f, "unused, only so goldsrc configs don't warn" );
 	Cmd_AddCommand( "cd", CL_CD_f, "Play cd-track (not real cd-player of course)" );
 	Cmd_AddCommand( "mp3", CL_MP3_f, "Play mp3-track (based on virtual cd-player)" );
 	Cmd_AddRestrictedCommand( "waveplaylen", CL_WavePlayLen_f, "Get approximate length of wave file" );

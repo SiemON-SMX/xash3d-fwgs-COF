@@ -46,6 +46,8 @@ typedef struct vgui_static_s
 	byte color[4];
 	qboolean enable_texture;
 	int paint_offset[2]; // in vgui coordinates, the renderer applies it to everything, including our own quads
+	int cursor_pos[2];
+	qboolean cursor_pos_valid;
 
 	HINSTANCE hInstance;
 
@@ -268,7 +270,13 @@ static void GAME_EXPORT VGUI_GetMousePos( int *_x, int *_y )
 	float yscale = (float)refState.height / (float)clgame.scrInfo.iHeight;
 	int x, y;
 
-	Platform_GetMousePos( &x, &y );
+	if( vgui.cursor_pos_valid )
+	{
+		x = vgui.cursor_pos[0];
+		y = vgui.cursor_pos[1];
+	}
+	else Platform_GetMousePos( &x, &y );
+
 	*_x = x / xscale;
 	*_y = y / yscale;
 }
@@ -714,6 +722,10 @@ void VGui_KeyEvent( int key, int down )
 
 void VGui_MouseMove( int x, int y )
 {
+	vgui.cursor_pos[0] = x;
+	vgui.cursor_pos[1] = y;
+	vgui.cursor_pos_valid = true;
+
 	if( vgui.dllFuncs.MouseMove )
 	{
 		float xscale = (float)refState.width / (float)clgame.scrInfo.iWidth;

@@ -8,7 +8,7 @@ set -e
 export CC=${E2K_CROSS_COMPILER_PATH[$GH_CPU_ARCH]}/bin/lcc
 export CXX=${E2K_CROSS_COMPILER_PATH[$GH_CPU_ARCH]}/bin/l++
 
-APP=cry-of-fear
+APP=xash3d-fwgs
 
 APPDIR=$APP-linux-$ARCH # FIXME: not conforms to libpublic's build arch strings but in parity with xashds directory name
 APPTARGZ=$APP-linux-$ARCH.tar.gz

@@ -22,7 +22,7 @@ import os
 import sys
 
 ANDROID_NDK_ENVVARS = ['ANDROID_NDK_HOME', 'ANDROID_NDK']
-ANDROID_NDK_SUPPORTED = [10, 19, 20, 23, 25, 27, 28, 29, 30]
+ANDROID_NDK_SUPPORTED = [10, 19, 20, 23, 25, 26, 27, 28, 29, 30]
 ANDROID_NDK_HARDFP_MAX = 11 # latest version that supports hardfp
 ANDROID_NDK_GCC_MAX = 17 # latest NDK that ships with GCC
 ANDROID_NDK_UNIFIED_SYSROOT_MIN = 15
@@ -34,6 +34,7 @@ ANDROID_NDK_API_MIN = {
 	20: 16,
 	23: 16,
 	25: 19,
+	26: 21,
 	27: 19,
 	28: 21,
 	29: 21,
@@ -568,7 +569,7 @@ class PSVita:
 		linkflags += ['-Wl,-no-enum-size-warning', '-fno-short-enums']
 		# vitasdk's ld script reserves __sce_headroom bytes after the RX segment for the SCE metadata that vita-elf-create appends there,
 		# otherwise "Cannot allocate N bytes for SCE data at end of segment 0; segment 1 overlaps" depends on the layout, see vitasdk/buildscripts#144
-		linkflags += ['-Wl,-z,max-page-size=0x10000', '-Wl,--defsym,__sce_headroom=0x20000']
+		linkflags += ['-Wl,-z,max-page-size=0x10000', '-Wl,--defsym,__sce_headroom=0x10000']
 		return linkflags
 
 	def ldflags(self):

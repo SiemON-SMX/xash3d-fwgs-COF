@@ -73,8 +73,8 @@ fi
 echo "XASH3D_RODIR is $XASH3D_RODIR"
 
 if [[ -z "$XASH3D_EXTRAS_PAK1" ]]; then
-        export XASH3D_EXTRAS_PAK1=/app/share/xash3d/CryOfFear/extras.pk3
+        export XASH3D_EXTRAS_PAK1=/app/share/xash3d/valve/extras.pk3
 fi
 echo "XASH3D_EXTRAS_PAK1 is $XASH3D_EXTRAS_PAK1"
 
-exec $DEBUGGER /app/lib32/xash3d/cryoffear "$@"
+exec $DEBUGGER /app/lib32/xash3d/xash3d "$@"

@@ -49,25 +49,7 @@ if [ "$ARCH" = "i386" ]; then # VGUI is already signed
 	cp 3rdparty/vgui_support/vgui-dev/lib/win32_vc6/vgui.dll .
 fi
 
-pushd hlsdk-portable || die
-HLSDK_EXTRA_ARGS=""
-if [ "$ARCH" = "amd64" ]; then
-	HLSDK_EXTRA_ARGS="-8"
-fi
-./waf.bat configure -T release --disable-werror $HLSDK_EXTRA_ARGS || die_configure
-./waf.bat build || die
-./waf.bat install --destdir="$BUILDDIR" || die
-popd || die
-
-if [ -d "valve" ] && [ ! -d "CryOfFear" ]; then
-	mv valve CryOfFear
-elif [ -d "valve" ]; then
-	mkdir -p CryOfFear
-	cp -r valve/* CryOfFear/
-	rm -rf valve
-fi
-
 mkdir -p artifacts/
-7z a -t7z "artifacts/cry-of-fear-win32-$ARCH.7z" -m0=lzma2 -mx=9 -mfb=64 -md=32m -ms=on \
+7z a -t7z "artifacts/xash3d-fwgs-win32-$ARCH.7z" -m0=lzma2 -mx=9 -mfb=64 -md=32m -ms=on \
 	./*.dll ./*.exe ./*.pdb activities.txt \
-	CryOfFear/
+	valve/

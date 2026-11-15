@@ -52,13 +52,11 @@ echo "Building engine..."
 echo "Building HLSDK..."
 
 pushd hlsdk-portable || die
-build_hlsdk CryOfFear CryOfFear
+build_hlsdk mobile_hacks valve
+build_hlsdk opfor gearbox
 popd || die
 
+# bshift can be used from mobile_hacks branch
 pushd pkgtemp/xash3d || die
-if [ -d "valve" ]; then
-	mkdir -p CryOfFear
-	cp -r valve/* CryOfFear/
-	rm -rf valve
-fi
+cp -v valve/dlls/hl_nswitch_arm64.so bshift/dlls/bshift_nswitch_arm64.so
 popd || die

@@ -58,4 +58,4 @@ git clone https://github.com/fgsfdsfgs/vita-rtld.git --depth=1 || exit 1
 echo "Downloading HLSDK..."
 
 rm -rf hlsdk-xash3d hlsdk-portable
-git clone --recursive -b CryOfFear https://github.com/SiemON-SMX/hlsdk-portable || exit 1
+git clone --recursive https://github.com/FWGS/hlsdk-portable || exit 1

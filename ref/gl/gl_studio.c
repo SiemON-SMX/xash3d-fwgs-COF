@@ -2060,7 +2060,7 @@ static void R_StudioDrawPoints( void )
 	// but doesn't enable OpenGL GL_CULL_FACE. This allows mod developers to disable
 	// backface culling through TriAPI call
 	//
-	// see https://github.com/SiemON-SMX/xash3d-fwgs-COF/issues/2517
+	// see https://github.com/FWGS/xash3d-fwgs/issues/2517
 	if( glState.faceCull != GL_NONE )
 	{
 		if( R_AllowFlipViewModel( RI.currententity ))
@@ -3219,10 +3219,16 @@ static void R_StudioDrawModelInternal( cl_entity_t *e, int flags )
 	}
 	else
 	{
+		if( gl_paranoia_hacks.value && FBitSet( flags, STUDIO_RENDER ))
+			R_PrepareClientGLState();
+
 		// select the properly method
 		if( e->player )
 			pStudioDraw->StudioDrawPlayer( flags, R_StudioGetPlayerState( e->index - 1 ));
 		else pStudioDraw->StudioDrawModel( flags );
+
+		if( gl_paranoia_hacks.value && FBitSet( flags, STUDIO_RENDER ))
+			R_ResyncClientGLState();
 	}
 }
 

@@ -19,6 +19,8 @@ GNU General Public License for more details.
 #include "platform/platform.h"
 
 // server cvars
+static CVAR_DEFINE_AUTO( sv_language, "0", 0, "unused, only so goldsrc configs don't warn" );
+static CVAR_DEFINE_AUTO( sv_voicecodec, "voice_miles", 0, "unused, only so goldsrc configs don't warn" );
 CVAR_DEFINE_AUTO( sv_lan, "0", 0, "server is a lan server ( no heartbeat, no authentication, no non-class C addresses, 9999.0 rate, etc." );
 CVAR_DEFINE_AUTO( sv_lan_rate, "20000.0", 0, "rate for lan server" );
 CVAR_DEFINE_AUTO( sv_nat, "0", 0, "enable NAT bypass for this server" );
@@ -65,6 +67,7 @@ CVAR_DEFINE_AUTO( sv_log_onefile, "0", FCVAR_ARCHIVE, "logs server information t
 CVAR_DEFINE_AUTO( sv_trace_messages, "0", FCVAR_LATCH, "enable server usermessages tracing (good for developers)" );
 CVAR_DEFINE_AUTO( sv_master_response_timeout, "4", FCVAR_ARCHIVE, "master server heartbeat response timeout in seconds" );
 CVAR_DEFINE_AUTO( sv_autosave, "1", FCVAR_ARCHIVE|FCVAR_SERVER|FCVAR_PRIVILEGED, "enable autosaving" );
+CVAR_DEFINE_AUTO( sv_savepoints_only, "0", FCVAR_SERVER|FCVAR_PRIVILEGED, "only allow saving through the game's save points (savehack command), like Cry of Fear" );
 CVAR_DEFINE_AUTO( sv_speedhack_kick, "10", FCVAR_ARCHIVE, "number of speedhack warns before automatic kick (0 to disable)" );
 
 // game-related cvars
@@ -898,6 +901,8 @@ void SV_Init( void )
 #endif // !XASH_DEDICATED
 	Cvar_RegisterVariable( &showtriggers );
 	Cvar_RegisterVariable( &sv_aim );
+	Cvar_RegisterVariable( &sv_language );
+	Cvar_RegisterVariable( &sv_voicecodec );
 	Cvar_RegisterVariable( &sv_allow_autoaim );
 	Cvar_RegisterVariable( &deathmatch );
 	Cvar_RegisterVariable( &coop );
@@ -969,6 +974,7 @@ void SV_Init( void )
 
 	Cvar_RegisterVariable( &sv_background_freeze );
 	Cvar_RegisterVariable( &sv_autosave );
+	Cvar_RegisterVariable( &sv_savepoints_only );
 
 	Cvar_RegisterVariable( &mapcyclefile );
 	Cvar_RegisterVariable( &motdfile );

@@ -9,6 +9,7 @@ CVAR_DEFINE( gl_extensions, "gl_allow_extensions", "1", FCVAR_GLCONFIG|FCVAR_REA
 CVAR_DEFINE( gl_texture_anisotropy, "gl_anisotropy", "8", FCVAR_GLCONFIG, "textures anisotropic filter" );
 CVAR_DEFINE_AUTO( gl_texture_lodbias, "0.0", FCVAR_GLCONFIG, "LOD bias for mipmapped textures (perfomance|quality)" );
 CVAR_DEFINE_AUTO( gl_texture_nearest, "0", FCVAR_GLCONFIG, "disable texture filter" );
+CVAR_DEFINE_AUTO( gl_paranoia_hacks, "0", FCVAR_GLCONFIG, "emulate the Paranoia hacked opengl32.dll used by Paranoia and Cry of Fear (depth range and extension string)" );
 CVAR_DEFINE_AUTO( gl_lightmap_nearest, "0", FCVAR_GLCONFIG, "disable lightmap filter" );
 CVAR_DEFINE_AUTO( gl_fbo_nearest, "0", FCVAR_GLCONFIG, "disable filter when upscaling the scene rendered with r_scene_scale" );
 CVAR_DEFINE_AUTO( gl_keeptjunctions, "1", FCVAR_GLCONFIG, "removing tjuncs causes blinking pixels" );
@@ -1255,6 +1256,7 @@ static void GL_InitCommands( void )
 
 	gEngfuncs.Cvar_RegisterVariable( &gl_extensions );
 	gEngfuncs.Cvar_RegisterVariable( &gl_texture_nearest );
+	gEngfuncs.Cvar_RegisterVariable( &gl_paranoia_hacks );
 	gEngfuncs.Cvar_RegisterVariable( &gl_lightmap_nearest );
 	gEngfuncs.Cvar_RegisterVariable( &gl_fbo_nearest );
 	gEngfuncs.Cvar_RegisterVariable( &gl_check_errors );

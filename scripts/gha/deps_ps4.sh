@@ -42,4 +42,4 @@ echo "OO_PS4_TOOLCHAIN=$GITHUB_WORKSPACE/$(dirname "$OO_LINKER")" >> "$GITHUB_EN
 echo "Downloading HLSDK..."
 
 rm -rf hlsdk-xash3d hlsdk-portable
-git clone --depth 1 --recursive -b CryOfFear https://github.com/SiemON-SMX/hlsdk-portable || exit 1
+git clone --depth 1 --recursive -b mobile_hacks https://github.com/FWGS/hlsdk-portable || exit 1

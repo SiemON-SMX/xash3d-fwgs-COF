@@ -373,13 +373,40 @@ static void GAME_EXPORT R_OverrideTextureSourceSize( unsigned int texnum, uint s
 	tx->srcHeight = srcHeight;
 }
 
-static void* GAME_EXPORT R_GetProcAddress( const char *name )
+static void *R_GetRealProcAddress( const char *name )
 {
 #if XASH_GL4ES
 	return gl4es_GetProcAddress( name );
 #else // TODO: other wrappers
 	return GL_GetProcAddress( name );
 #endif
+}
+
+static const GLubyte *( APIENTRY *pfnClientGetString )( GLenum name );
+
+static const GLubyte * APIENTRY R_ClientGetString( GLenum name )
+{
+	static char extensions[65536];
+	const GLubyte *str = pfnClientGetString ? pfnClientGetString( name ) : NULL;
+
+	if( name != GL_EXTENSIONS || !str || !gl_paranoia_hacks.value )
+		return str;
+
+	Q_strncpy( extensions, (const char *)str, sizeof( extensions ) - 32 );
+	Q_strncat( extensions, " PARANOIA_HACKS_V1", sizeof( extensions ));
+
+	return (const GLubyte *)extensions;
+}
+
+static void* GAME_EXPORT R_GetProcAddress( const char *name )
+{
+	if( !Q_strcmp( name, "glGetString" ))
+	{
+		pfnClientGetString = R_GetRealProcAddress( name );
+		return pfnClientGetString ? (void *)R_ClientGetString : NULL;
+	}
+
+	return R_GetRealProcAddress( name );
 }
 
 static const char *R_GetConfigName( void )
@@ -452,6 +479,7 @@ static void R_FillRenderAPI( render_api_t *api )
 	api->LightVec                 = R_LightVec;
 	api->StudioGetTexture         = R_StudioGetTexture;
 	api->GL_GetProcAddress        = R_GetProcAddress;
+	api->GL_Reserved0             = R_ResyncClientGLState;
 }
 
 static void R_FillTriAPI( triangleapi_t *api )

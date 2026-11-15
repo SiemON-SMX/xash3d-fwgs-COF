@@ -409,6 +409,8 @@ void R_ShowTextures( void );
 // gl_rmain.c
 //
 void R_ClearScene( void );
+void R_PrepareClientGLState( void );
+void R_ResyncClientGLState( void );
 void R_LoadIdentity( void );
 void R_RenderScene( void );
 void R_DrawCubemapView( const vec3_t origin, const vec3_t angles, int size );
@@ -779,6 +781,7 @@ extern convar_t	gl_extensions;
 extern convar_t	gl_check_errors;
 extern convar_t	gl_texture_lodbias;
 extern convar_t	gl_texture_nearest;
+extern convar_t	gl_paranoia_hacks;
 extern convar_t	gl_lightmap_nearest;
 extern convar_t	gl_fbo_nearest;
 extern convar_t	gl_keeptjunctions;

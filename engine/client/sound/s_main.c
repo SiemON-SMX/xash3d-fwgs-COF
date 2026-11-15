@@ -47,6 +47,11 @@ snd_globals_t snd =
 static CVAR_DEFINE( s_volume, "volume", "0.7", FCVAR_ARCHIVE|FCVAR_FILTERABLE, "sound volume" );
 CVAR_DEFINE( s_musicvolume, "MP3Volume", "1.0", FCVAR_ARCHIVE|FCVAR_FILTERABLE, "background music volume" );
 CVAR_DEFINE( s_musicfadetime, "MP3FadeTime", "2.0", FCVAR_ARCHIVE|FCVAR_FILTERABLE, "background music fade out time in seconds for \"cd fadeout\" command" );
+static CVAR_DEFINE_AUTO( s_distance, "18", FCVAR_ARCHIVE, "unused, only so goldsrc configs don't warn" );
+static CVAR_DEFINE_AUTO( s_refgain, "0.34", FCVAR_ARCHIVE, "unused, only so goldsrc configs don't warn" );
+static CVAR_DEFINE_AUTO( s_refdelay, "4", FCVAR_ARCHIVE, "unused, only so goldsrc configs don't warn" );
+static CVAR_DEFINE_AUTO( s_verbwet, "0.15", FCVAR_ARCHIVE, "unused, only so goldsrc configs don't warn" );
+static CVAR_DEFINE_AUTO( s_occfactor, "0.25", 0, "unused, only so goldsrc configs don't warn" );
 static CVAR_DEFINE( s_mixahead, "_snd_mixahead", "0.12", FCVAR_FILTERABLE, "how much sound to mix ahead of time" );
 static CVAR_DEFINE_AUTO( s_show, "0", FCVAR_ARCHIVE|FCVAR_FILTERABLE, "show playing sounds" );
 CVAR_DEFINE_AUTO( s_lerping, "0", FCVAR_ARCHIVE|FCVAR_FILTERABLE, "apply interpolation to sound output" );
@@ -1983,6 +1988,11 @@ qboolean S_Init( void )
 	Cvar_RegisterVariable( &s_musicvolume );
 	Cvar_RegisterVariable( &s_musicfadetime );
 	Cvar_RegisterVariable( &s_mixahead );
+	Cvar_RegisterVariable( &s_distance );
+	Cvar_RegisterVariable( &s_refgain );
+	Cvar_RegisterVariable( &s_refdelay );
+	Cvar_RegisterVariable( &s_verbwet );
+	Cvar_RegisterVariable( &s_occfactor );
 	Cvar_RegisterVariable( &s_show );
 	Cvar_RegisterVariable( &s_lerping );
 	Cvar_RegisterVariable( &s_ambient_level );

@@ -10,9 +10,9 @@ console to fetch detailed info about the engine build.
 
 If you discover a security vulnerability in this project, it can be reported
 privately though `Security` tab on GitHub:
-https://github.com/SiemON-SMX/xash3d-fwgs-COF/security
+https://github.com/FWGS/xash3d-fwgs/security
 
 Alternatively, you can report them publicly on the `Issues` tab:
-https://github.com/SiemON-SMX/xash3d-fwgs-COF/issues
+https://github.com/FWGS/xash3d-fwgs/issues
 
 In both cases, expect a reply within approximately a week.

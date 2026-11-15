@@ -30,7 +30,7 @@ fetch_sdk_image()
 echo "Downloading hlsdk-portable..."
 
 # mb2 builds in the source tree without running %prep, the spec expects it there
-git clone --depth 1 --recursive https://github.com/SiemON-SMX/hlsdk-portable -b CryOfFear hlsdk-portable || die
+git clone --depth 1 --recursive https://github.com/FWGS/hlsdk-portable -b mobile_hacks hlsdk-portable || die
 
 echo "Downloading Sailfish Platform SDK..."
 

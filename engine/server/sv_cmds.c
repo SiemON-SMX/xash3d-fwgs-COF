@@ -407,24 +407,29 @@ static void SV_Load_f( void )
 
 /*
 ==============
-SV_QuickLoad_f
-
-==============
-*/
-static void SV_QuickLoad_f( void )
-{
-	Cbuf_AddText( "echo Quick Loading...; wait; load quick\n" );
-}
-
-/*
-==============
 SV_Save_f
 
 ==============
 */
+static qboolean sv_save_allowed;
+
+static qboolean SV_SavePointCheck( void )
+{
+	if( sv_savepoints_only.value && !sv_save_allowed )
+	{
+		Con_Printf( "Use save points to save your progress.\n" );
+		return false;
+	}
+
+	return true;
+}
+
 static void SV_Save_f( void )
 {
 	qboolean ret = false;
+
+	if( !SV_SavePointCheck( ))
+		return;
 
 	switch( Cmd_Argc( ))
 	{
@@ -443,15 +448,17 @@ static void SV_Save_f( void )
 		CL_HudMessage( "GAMESAVED" ); // defined in titles.txt
 }
 
-/*
-==============
-SV_QuickSave_f
-
-==============
-*/
-static void SV_QuickSave_f( void )
+static void SV_SaveHack_f( void )
 {
-	Cbuf_AddText( "echo Quick Saving...; wait; save quick\n" );
+	if( Cmd_Argc() != 2 )
+	{
+		Con_Printf( S_USAGE "savehack <savename>\n" );
+		return;
+	}
+
+	sv_save_allowed = true;
+	SV_SaveGame( Cmd_Argv( 1 ));
+	sv_save_allowed = false;
 }
 
 /*
@@ -486,6 +493,9 @@ static void SV_AutoSave_f( void )
 		Con_Printf( S_USAGE "autosave\n" );
 		return;
 	}
+
+	if( !SV_SavePointCheck( ))
+		return;
 
 	if( sv_autosave.value )
 		SV_SaveGame( "autosave" );
@@ -1290,7 +1300,6 @@ void SV_InitHostCommands( void )
 		Cmd_AddRestrictedCommand( "hazardcourse", SV_HazardCourse_f, "starting a Hazard Course" );
 		Cmd_AddRestrictedCommand( "map_background", SV_MapBackground_f, "set background map" );
 		Cmd_AddRestrictedCommand( "load", SV_Load_f, "load a saved game file" );
-		Cmd_AddRestrictedCommand( "loadquick", SV_QuickLoad_f, "load a quick-saved game file" );
 		Cmd_AddRestrictedCommand( "reload", SV_Reload_f, "continue from latest save or restart level" );
 		Cmd_AddRestrictedCommand( "killsave", SV_DeleteSave_f, "delete a saved game file and saveshot" );
 		Cmd_AddRestrictedCommand( "nextmap", SV_NextMap_f, "load next level" );
@@ -1331,8 +1340,8 @@ void SV_InitOperatorCommands( void )
 	if( host.type == HOST_NORMAL )
 	{
 		Cmd_AddCommand( "save", SV_Save_f, "save the game to a file" );
-		Cmd_AddCommand( "savequick", SV_QuickSave_f, "save the game to the quicksave" );
 		Cmd_AddCommand( "autosave", SV_AutoSave_f, "save the game to 'autosave' file" );
+		Cmd_AddCommand( "savehack", SV_SaveHack_f, "save the game from a game save point" );
 	}
 	else if( host.type == HOST_DEDICATED )
 	{
@@ -1373,8 +1382,8 @@ void SV_KillOperatorCommands( void )
 	if( host.type == HOST_NORMAL )
 	{
 		Cmd_RemoveCommand( "save" );
-		Cmd_RemoveCommand( "savequick" );
 		Cmd_RemoveCommand( "autosave" );
+		Cmd_RemoveCommand( "savehack" );
 	}
 	else if( host.type == HOST_DEDICATED )
 	{

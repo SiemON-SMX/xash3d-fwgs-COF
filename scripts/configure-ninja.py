@@ -75,7 +75,7 @@ def main():
 
 	# configure hlsdk-portable
 	hlsdk_path = os.path.join(args.wscript_path, "3rdparty", "hlsdk-portable")
-	check_repo("hlsdk-portable", "CryOfFear", "https://github.com/SiemON-SMX/hlsdk-portable", hlsdk_path)
+	check_repo("hlsdk-portable", "mobile_hacks", "https://github.com/FWGS/hlsdk-portable", hlsdk_path)
 
 	hlsdk_out_path = os.path.join(args.configuration_dir, "hlsdk-portable")
 

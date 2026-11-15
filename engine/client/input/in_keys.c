@@ -76,8 +76,8 @@ static const keyname_t keynames[] =
 { "F3",             K_F3,                  "menu_loadgame"   },
 { "F4",             K_F4,                  "menu_controls"   },
 { "F5",             K_F5,                  "menu_creategame" },
-{ "F6",             K_F6,                  "savequick"       },
-{ "F7",             K_F7,                  "loadquick"       },
+{ "F6",             K_F6,                  ""                },
+{ "F7",             K_F7,                  ""                },
 { "F8",             K_F8,                  "stop"            },
 { "F9",             K_F9,                  ""                },
 { "F10",            K_F10,                 "menu_main"       },
@@ -132,8 +132,8 @@ static const keyname_t keynames[] =
 { "R1_BUTTON",      K_R1_BUTTON,           "+attack"         },
 { "DPAD_UP",        K_DPAD_UP,             "impulse 201"     }, // Spray
 { "DPAD_DOWN",      K_DPAD_DOWN,           "lastinv"         },
-{ "DPAD_LEFT",      K_DPAD_LEFT,           "invprev"         },
-{ "DPAD_RIGHT",     K_DPAD_RIGHT,          "invnext"         },
+{ "DPAD_LEFT",      K_DPAD_LEFT,           ""                },
+{ "DPAD_RIGHT",     K_DPAD_RIGHT,          ""                },
 { "L2_BUTTON",      K_L2_BUTTON,           "+speed"          },
 { "R2_BUTTON",      K_R2_BUTTON,           "+attack2"        },
 { "LTRIGGER",       K_JOY1,                "+speed"          }, // L2 in SDL2
@@ -739,9 +739,6 @@ void GAME_EXPORT Key_Event( int key, int down )
 {
 	key = Key_Rotate( key );
 
-	if( OSK_KeyEvent( key, down ) )
-		return;
-
 	// key was pressed before engine was run
 	if( !keys[key].down && !down )
 		return;
@@ -775,7 +772,7 @@ void GAME_EXPORT Key_Event( int key, int down )
 
 			// deliver keys regardless of whether the client.dll handled them or not
 			// reproduces GoldSrc behavior, where keys are passed even if the client.dll claims to have handled them
-			// this is needed for Cry of fear's Computer interface input, for more context, see https://github.com/SiemON-SMX/xash3d-fwgs-COF/issues/1923
+			// this is needed for Cry of fear's Computer interface input, for more context, see https://github.com/FWGS/xash3d-fwgs/issues/1923
 			VGui_KeyEvent( key, down );
 			return;
 		}
@@ -827,9 +824,9 @@ void GAME_EXPORT Key_Event( int key, int down )
 				return;
 			}
 			// Note: we don't offer the client key handling here since reaching this line proves the client already declined handling it.
-			// this prevents accidentally declining a key the client asked the engine to handle. For more context, see https://github.com/SiemON-SMX/xash3d-fwgs-COF/issues/1943
+			// this prevents accidentally declining a key the client asked the engine to handle. For more context, see https://github.com/FWGS/xash3d-fwgs/issues/1943
 			
-			// call escape immediately within the engine, since the client may not handle it (Natural Selection doesn't. See https://github.com/SiemON-SMX/xash3d-fwgs-COF/issues/528)
+			// call escape immediately within the engine, since the client may not handle it (Natural Selection doesn't. See https://github.com/FWGS/xash3d-fwgs/issues/528)
 			CL_Escape_f();
 			return;
 		default:
@@ -929,7 +926,7 @@ void Key_SetTextInputRect( int x, int y, int w, int h )
 	key_textinput_rect.h = h;
 
 	// text is already edited somewhere else now, let the platform know immediately
-	if( key_textinput_enabled && !osk_enable.value )
+	if( key_textinput_enabled )
 	{
 		Key_GetTextInputRect( &x, &y, &w, &h );
 		Platform_EnableTextInput( true, x, y, w, h );
@@ -969,13 +966,6 @@ Key_EnableTextInput
 */
 void Key_EnableTextInput( qboolean enable, qboolean force )
 {
-	if( osk_enable.value )
-	{
-		OSK_EnableTextInput( enable, force );
-		Key_SetTextInputBuffer( NULL );
-		return;
-	}
-
 	// the menu asks to open the system keyboard with its text, even if text input is enabled already
 	if( enable && key_textinput_buffer_set )
 		force = true;

@@ -316,11 +316,56 @@ static void R_Clear( int bitMask )
 	else
 	{
 		gldepthmin = 0.0f;
-		gldepthmax = 1.0f;
+		gldepthmax = gl_paranoia_hacks.value ? 0.8f : 1.0f;
 	}
 
 	pglDepthFunc( GL_LEQUAL );
 	pglDepthRange( gldepthmin, gldepthmax );
+}
+
+void R_PrepareClientGLState( void )
+{
+	GL_SelectTexture( 0 );
+	GL_TextureTarget( GL_TEXTURE_2D );
+	pglTexEnvi( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE );
+}
+
+void R_ResyncClientGLState( void )
+{
+	int i, units = GL_MaxTextureUnits();
+
+	for( i = units - 1; i >= 0; i-- )
+	{
+		glState.activeTMU = -1;
+		GL_SelectTexture( i );
+
+		if( i < glConfig.max_texture_units )
+		{
+			pglDisable( GL_TEXTURE_2D );
+			if( GL_Support( GL_TEXTURE_CUBEMAP_EXT ))
+				pglDisable( GL_TEXTURE_CUBE_MAP_ARB );
+			if( GL_Support( GL_TEXTURE_3D_EXT ))
+				pglDisable( GL_TEXTURE_3D );
+#if !XASH_GLES
+			pglDisable( GL_TEXTURE_1D );
+			pglDisable( GL_TEXTURE_GEN_S );
+			pglDisable( GL_TEXTURE_GEN_T );
+			pglDisable( GL_TEXTURE_GEN_R );
+			pglDisable( GL_TEXTURE_GEN_Q );
+#endif
+		}
+
+		glState.currentTextureTargets[i] = GL_NONE;
+		glState.currentTextures[i] = -1;
+		glState.currentTexturesIndex[i] = 0;
+		glState.genSTEnabled[i] = 0;
+	}
+
+	glState.activeTMU = -1;
+	GL_SelectTexture( 0 );
+	pglEnable( GL_TEXTURE_2D );
+	glState.currentTextureTargets[0] = GL_TEXTURE_2D;
+	pglTexEnvi( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE );
 }
 
 //=============================================================================
@@ -874,7 +919,15 @@ static void R_DrawEntitiesOnList( void )
 	GL_CheckForErrors();
 
 	if( FBitSet( RI.rvp.flags, RF_DRAW_WORLD ))
+	{
+		if( gl_paranoia_hacks.value )
+			R_PrepareClientGLState();
+
 		gEngfuncs.pfnDrawNormalTriangles();
+
+		if( gl_paranoia_hacks.value )
+			R_ResyncClientGLState();
+	}
 
 	GL_CheckForErrors();
 
@@ -928,7 +981,13 @@ static void R_DrawEntitiesOnList( void )
 	if( FBitSet( RI.rvp.flags, RF_DRAW_WORLD ))
 	{
 		pglTexEnvi( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE );
+		if( gl_paranoia_hacks.value )
+			R_PrepareClientGLState();
+
 		gEngfuncs.pfnDrawTransparentTriangles ();
+
+		if( gl_paranoia_hacks.value )
+			R_ResyncClientGLState();
 	}
 
 	GL_CheckForErrors();
