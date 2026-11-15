@@ -1,9 +1,9 @@
-# Cry of Fear for Xash3D FWGS Engine <img align="right" width="128" height="128" src="https://github.com/SiemON-SMX/xash3d-fwgs-COF/raw/master/game_launch/icon-xash-material.png" alt="Xash3D FWGS icon" />
+# Reverse engineered Cry of Fear for Xash3D FWGS Engine <img align="right" width="128" height="128" src="https://github.com/SiemON-SMX/xash3d-fwgs-COF/raw/master/game_launch/icon-xash-material.png" alt="Xash3D FWGS icon" />
 [![GitHub Actions Status](https://github.com/SiemON-SMX/xash3d-fwgs-COF/actions/workflows/c-cpp.yml/badge.svg)](https://github.com/SiemON-SMX/xash3d-fwgs-COF/actions/workflows/c-cpp.yml) \
 [![Discord Server](https://img.shields.io/discord/1480939659021520979?logo=Discord&label=SiemON%20ports%20%28SP%20OF%29)](https://discord.gg/38YzeFrtvJ) \
 [![Download Continuous Build](https://img.shields.io/badge/downloads-continuous-orange)](https://github.com/SiemON-SMX/xash3d-fwgs-COF/releases/tag/continuous)
 
-A modified fork of Xash3D FWGS that adds changes required to run Cry of Fear, including a GLSL version of the Cg water shader and a spotlight shader for gl4es.
+A modified fork of Xash3D FWGS for Cry of Fear. Adds the engine-side support for the CoF client renderer: Paranoia GL hacks, GL state handoff, gl4es fixes, The renderer itself (GLSL Cg water, spotlight shader, dynamic lights, bump/specular, post-effects, glows, sky, decals) runs in the game's client library.
 
 [Android]: Added Game Downloader for download Cry of Fear quickly. Thanks to [hasandramali](https://github.com/hasandramali).
 [Touch]: Removed some touch buttons that's isn't nesscary for game.
