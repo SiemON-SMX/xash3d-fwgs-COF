@@ -1,5 +1,7 @@
 package su.xash.cryoffear.ui.library
 
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -13,20 +15,20 @@ import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
-import androidx.core.content.ContextCompat
-import androidx.core.graphics.drawable.DrawableCompat
 import androidx.core.view.MenuProvider
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
-import androidx.navigation.fragment.findNavController
+import androidx.lifecycle.repeatOnLifecycle
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import su.xash.cryoffear.R
 import su.xash.cryoffear.XashActivity
 import su.xash.cryoffear.databinding.FragmentLibraryBinding
-import su.xash.cryoffear.discord.DiscordRpcService
+import su.xash.cryoffear.model.DownloadService
+import su.xash.cryoffear.model.DownloadState
+import su.xash.cryoffear.model.GameDataDownloader
 import su.xash.cryoffear.ui.settings.AppSettingsPreferenceFragment
 import su.xash.cryoffear.util.Nomedia
 import su.xash.cryoffear.util.Prefs
@@ -35,7 +37,9 @@ class LibraryFragment : Fragment(), MenuProvider {
 	private var _binding: FragmentLibraryBinding? = null
 	private val binding get() = _binding!!
 
-	private var discordMenuItem: MenuItem? = null
+	private var downloadMenuItem: MenuItem? = null
+	private var lastTerminalState: DownloadState? = null
+	private var hasShownFirstRunDialog = false
 
 	override fun onCreateView(
 		inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -54,45 +58,185 @@ class LibraryFragment : Fragment(), MenuProvider {
 
 		binding.infoButton.setOnClickListener { showAboutDialog() }
 		binding.runButton.setOnClickListener { startGame() }
+		binding.cancelButton.setOnClickListener { cancelCryOfFearDownload() }
+
+		observeDownloadState()
 	}
 
 	override fun onResume() {
 		super.onResume()
-		refreshDiscordIcon()
+		refreshDownloadAction()
 
 		val root = Prefs.getGamePath(requireContext())
 		lifecycleScope.launch(Dispatchers.IO) {
 			Nomedia.ensureNomedia(root)
 		}
+
+		checkFirstRunGameData()
 	}
 
 	override fun onDestroyView() {
 		super.onDestroyView()
-		discordMenuItem = null
+		downloadMenuItem = null
 		_binding = null
 	}
 
 	override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
 		menuInflater.inflate(R.menu.menu_library, menu)
-		discordMenuItem = menu.findItem(R.id.action_discord)
-		refreshDiscordIcon()
+		downloadMenuItem = menu.findItem(R.id.action_download)
+		refreshDownloadAction()
 	}
 
 	override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
-		if (menuItem.itemId == R.id.action_discord) {
-			findNavController().navigate(R.id.action_libraryFragment_to_discordAuthFragment)
-			return true
+		return when (menuItem.itemId) {
+			R.id.action_download -> {
+				startCryOfFearDownload()
+				true
+			}
+			R.id.action_discord -> {
+				startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(getString(R.string.discord_invite_url))))
+				true
+			}
+			else -> false
 		}
-		return false
 	}
 
-	private fun refreshDiscordIcon() {
-		val item = discordMenuItem ?: return
-		if (!isAdded) return
-		val icon = item.icon?.mutate() ?: return
-		val color = if (DiscordRpcService.isRunning()) R.color.mono_white else R.color.mono_dim
-		DrawableCompat.setTint(icon, ContextCompat.getColor(requireContext(), color))
-		item.icon = icon
+	private fun refreshDownloadAction() {
+		val isDownloading = DownloadService.state.value is DownloadState.Downloading
+		downloadMenuItem?.isEnabled = !isDownloading
+	}
+
+	private fun checkFirstRunGameData() {
+		val ctx = requireContext()
+		val downloader = GameDataDownloader(ctx)
+		if (downloader.hasCheckedFirstRun() || hasShownFirstRunDialog) return
+		if (Prefs.findGameDir(ctx) != null) {
+			downloader.setFirstRunChecked()
+			return
+		}
+
+		hasShownFirstRunDialog = true
+		val root = Prefs.getGamePath(ctx)
+		MaterialAlertDialogBuilder(ctx)
+			.setTitle(R.string.no_game_data_found)
+			.setMessage(getString(R.string.no_game_data_download_message, root.absolutePath))
+			.setPositiveButton(R.string.download_now) { _, _ ->
+				downloader.setFirstRunChecked()
+				startCryOfFearDownload()
+			}
+			.setNegativeButton(R.string.no_thanks) { _, _ ->
+				downloader.setFirstRunChecked()
+			}
+			.setCancelable(false)
+			.show()
+	}
+
+	private fun startCryOfFearDownload() {
+		if (DownloadService.state.value is DownloadState.Downloading) return
+		val ctx = requireContext()
+		val gamedir = "CryofFear"
+		val info = GameDataDownloader.GAMES[gamedir] ?: return
+		val existingGameDir = Prefs.findGameDir(ctx)
+
+		if (existingGameDir != null) {
+			MaterialAlertDialogBuilder(ctx)
+				.setTitle(R.string.overwrite_confirm_title)
+				.setMessage(getString(R.string.overwrite_confirm_message, info.displayName))
+				.setPositiveButton(R.string.overwrite) { _, _ -> beginCryOfFearDownload(gamedir) }
+				.setNegativeButton(R.string.keep, null)
+				.show()
+		} else {
+			MaterialAlertDialogBuilder(ctx)
+				.setTitle(R.string.install_cryoffear_title)
+				.setPositiveButton(android.R.string.yes) { _, _ -> beginCryOfFearDownload(gamedir) }
+				.setNegativeButton(android.R.string.no, null)
+				.show()
+		}
+	}
+
+	private fun beginCryOfFearDownload(gamedir: String) {
+		val info = GameDataDownloader.GAMES[gamedir] ?: return
+		val basedir = Prefs.getGamePath(requireContext())
+		DownloadService.start(requireContext(), gamedir, basedir, info.depotIds)
+	}
+
+	private fun cancelCryOfFearDownload() {
+		DownloadService.cancel(requireContext())
+	}
+
+	private fun observeDownloadState() {
+		viewLifecycleOwner.lifecycleScope.launch {
+			viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+				DownloadService.state.collect { state ->
+					val b = _binding ?: return@collect
+					when (state) {
+						is DownloadState.Idle -> {
+							lastTerminalState = null
+							if (b.downloadProgressContainer.visibility == View.VISIBLE) {
+								b.downloadProgressContainer.visibility = View.GONE
+							}
+							refreshDownloadAction()
+						}
+						is DownloadState.Downloading -> {
+							lastTerminalState = null
+							b.downloadProgressContainer.visibility = View.VISIBLE
+							refreshDownloadAction()
+							if (state.total > 0) {
+								b.downloaderProgress.isIndeterminate = false
+								b.downloaderProgress.progress = ((state.current * 100) / state.total).toInt()
+							} else {
+								b.downloaderProgress.isIndeterminate = true
+							}
+							b.downloaderStatus.text = state.status
+						}
+						is DownloadState.Success -> {
+							if (lastTerminalState != state) {
+								lastTerminalState = state
+								b.downloadProgressContainer.visibility = View.GONE
+								refreshDownloadAction()
+								DownloadService.consumeCompletion()
+								MaterialAlertDialogBuilder(requireContext())
+									.setTitle(R.string.download_complete)
+									.setPositiveButton(android.R.string.ok) { _, _ ->
+										DownloadService.resetState()
+									}
+									.show()
+							}
+						}
+						is DownloadState.Error -> {
+							if (lastTerminalState != state) {
+								lastTerminalState = state
+								b.downloadProgressContainer.visibility = View.GONE
+								refreshDownloadAction()
+								val errorMsg = state.message
+								MaterialAlertDialogBuilder(requireContext())
+									.setTitle(R.string.download_failed)
+									.setMessage(errorMsg)
+									.setPositiveButton(android.R.string.ok) { _, _ ->
+										DownloadService.resetState()
+									}
+									.setNeutralButton("Copy") { _, _ ->
+										val clipboard = requireContext().getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+										clipboard.setPrimaryClip(ClipData.newPlainText("Error", errorMsg))
+									}
+									.show()
+							}
+						}
+						is DownloadState.Cancelled -> {
+							if (lastTerminalState != state) {
+								lastTerminalState = state
+								b.downloaderStatus.text = getString(R.string.download_cancelled)
+								b.downloadProgressContainer.postDelayed({
+									_binding?.downloadProgressContainer?.visibility = View.GONE
+									refreshDownloadAction()
+									DownloadService.resetState()
+								}, 1500)
+							}
+						}
+					}
+				}
+			}
+		}
 	}
 
 	private fun startGame() {
@@ -104,7 +248,8 @@ class LibraryFragment : Fragment(), MenuProvider {
 			MaterialAlertDialogBuilder(ctx)
 				.setTitle(R.string.no_game_data_found)
 				.setMessage(getString(R.string.no_game_data_message, root.absolutePath))
-				.setPositiveButton(android.R.string.ok, null)
+				.setPositiveButton(R.string.download_now) { _, _ -> startCryOfFearDownload() }
+				.setNegativeButton(android.R.string.cancel, null)
 				.show()
 			return
 		}

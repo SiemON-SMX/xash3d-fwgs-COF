@@ -15,9 +15,4 @@
 	<color name="mono_surface_high">#2A2A2A</color>
 	<color name="mono_surface_highest">#333333</color>
 	<color name="valve_red">#F74843</color>
-	<color name="discord_dark">#2A2A2A</color>
-	<color name="discord_card_dark">#1E1E1E</color>
-	<color name="discord_green">#57F287</color>
-	<color name="discord_red">#ED4245</color>
-	<color name="discord_subtext">#9A9A9A</color>
 </resources>

@@ -15,7 +15,7 @@ popd || die
 
 echo "Building engine..."
 
-PS4_GAMELIBS="hlsdk-portable/build/ps4/CryOfFear"
+PS4_GAMELIBS="hlsdk-portable/build/ps4/CryofFear"
 if [ ! -d "$PS4_GAMELIBS" ]; then
 	PS4_GAMELIBS="hlsdk-portable/build/ps4/valve"
 fi

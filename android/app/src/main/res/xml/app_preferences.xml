@@ -8,7 +8,6 @@
 			app:icon="@drawable/ic_outline_folder_24"
 			app:key="game_path"
 			app:persistent="false"
-			app:selectable="false"
 			app:title="@string/game_data_location"
 			tools:summary="/storage/emulated/0/Android/data/su.xash.cryoffear/files" />
 	</PreferenceCategory>
@@ -20,12 +19,30 @@
 			app:key="use_volume_buttons"
 			app:title="@string/game_settings_volume_buttons" />
 
-		<EditTextPreference
-			app:defaultValue="-console -log"
+		<Preference
 			app:icon="@drawable/ic_outline_terminal_24"
 			app:key="arguments"
-			app:title="@string/game_settings_command_line"
-			app:useSimpleSummaryProvider="true" />
+			app:title="@string/game_settings_command_line" />
+
+		<Preference
+			app:icon="@drawable/ic_outline_aspect_ratio_24"
+			app:key="render_resolution"
+			app:summary="@string/render_resolution_summary"
+			app:title="@string/render_resolution" />
+
+		<SwitchPreferenceCompat
+			app:defaultValue="false"
+			app:icon="@drawable/ic_outline_fullscreen_24"
+			app:key="stretch_resolution"
+			app:summary="@string/stretch_resolution_summary"
+			app:title="@string/stretch_resolution" />
+
+		<SwitchPreferenceCompat
+			app:defaultValue="true"
+			app:icon="@drawable/ic_outline_text_fields_24"
+			app:key="fix_font"
+			app:summary="@string/fix_font_summary"
+			app:title="@string/fix_font" />
 
 		<SwitchPreferenceCompat
 			app:defaultValue="true"
@@ -35,13 +52,13 @@
 			app:title="@string/keyboard_pans_screen" />
 
 		<Preference
-			app:icon="@drawable/ic_outline_bug_report_24"
+			app:icon="@drawable/ic_outline_share_24"
 			app:key="share_engine_log"
 			app:persistent="false"
 			app:title="@string/share_engine_log" />
 
 		<Preference
-			app:icon="@drawable/ic_outline_info_24"
+			app:icon="@drawable/ic_outline_bug_report_24"
 			app:key="crash_logs"
 			app:persistent="false"
 			app:title="@string/crash_logs" />

@@ -11,16 +11,9 @@
 		<action
 			android:id="@+id/action_libraryFragment_to_crashLogsFragment"
 			app:destination="@id/crashLogsFragment" />
-		<action
-			android:id="@+id/action_libraryFragment_to_discordAuthFragment"
-			app:destination="@id/discordAuthFragment" />
 	</fragment>
 	<fragment
 		android:id="@+id/crashLogsFragment"
 		android:name="su.xash.cryoffear.ui.settings.CrashLogsFragment"
 		android:label="@string/crash_logs" />
-	<fragment
-		android:id="@+id/discordAuthFragment"
-		android:name="su.xash.cryoffear.ui.discord.DiscordAuthFragment"
-		android:label="@string/discord_rpc" />
 </navigation>

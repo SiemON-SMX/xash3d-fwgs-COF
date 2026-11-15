@@ -1,9 +1,9 @@
 package su.xash.cryoffear.ui.settings
 
 import android.os.Bundle
-import androidx.appcompat.app.AlertDialog
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import su.xash.cryoffear.R
 import su.xash.cryoffear.util.CrashReports
 import su.xash.cryoffear.util.monospaceTextView
@@ -54,7 +54,7 @@ class CrashLogsFragment : PreferenceFragmentCompat() {
 
 	private fun showCrashLog(entry: CrashReports.Entry) {
 		val ctx = requireContext()
-		AlertDialog.Builder(ctx)
+		MaterialAlertDialogBuilder(ctx)
 			.setTitle(entry.name)
 			.setView(monospaceTextView(ctx, entry.summary()))
 			.setPositiveButton(R.string.crash_send_to_developers) { _, _ -> CrashReports.sendByEmail(ctx, entry) }

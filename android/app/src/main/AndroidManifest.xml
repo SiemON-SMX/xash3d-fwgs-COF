@@ -38,9 +38,8 @@
 	<uses-permission android:name="android.permission.RECORD_AUDIO" />
 	<!-- Allow internet access -->
 	<uses-permission android:name="android.permission.INTERNET" />
-	<!-- Dedicated server -->
+	<!-- Dedicated server / Download service -->
 	<uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-	<!-- Discord presence service -->
 	<uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
 	<uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 	<!-- Self-update: install downloaded APK -->
@@ -108,7 +107,7 @@
 		</activity>
 
 		<service
-			android:name=".discord.DiscordRpcService"
+			android:name=".model.DownloadService"
 			android:exported="false"
 			android:foregroundServiceType="dataSync" />
 	</application>

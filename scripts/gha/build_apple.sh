@@ -12,8 +12,8 @@ pushd hlsdk || die
 popd || die
 
 if [ -d "bin/valve" ]; then
-	mkdir -p bin/CryOfFear
-	cp -r bin/valve/* bin/CryOfFear/
+	mkdir -p bin/CryofFear
+	cp -r bin/valve/* bin/CryofFear/
 	rm -rf bin/valve
 fi
 

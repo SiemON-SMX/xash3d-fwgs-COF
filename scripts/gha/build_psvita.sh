@@ -21,7 +21,7 @@ cd "$BUILDDIR" || die
 
 rm -rf artifacts build pkgtemp
 
-mkdir -p pkgtemp/data/xash3d/CryOfFear/{dlls,cl_dlls} || die
+mkdir -p pkgtemp/data/xash3d/CryofFear/{dlls,cl_dlls} || die
 mkdir -p artifacts/ || die
 
 echo "Building vitaGL..."
@@ -53,20 +53,20 @@ cp build/engine/xash.vpk pkgtemp/
 echo "Building HLSDK..."
 
 pushd hlsdk-portable || die
-build_hlsdk CryOfFear CryOfFear
+build_hlsdk CryOfFear CryofFear
 popd || die
 
 pushd pkgtemp/data/xash3d || die
 if [ -d "valve" ]; then
-	mkdir -p CryOfFear
-	cp -r valve/* CryOfFear/
+	mkdir -p CryofFear
+	cp -r valve/* CryofFear/
 	rm -rf valve
 fi
 popd || die
 
 echo "Generating default config files..."
 
-pushd pkgtemp/data/xash3d/CryOfFear || die
+pushd pkgtemp/data/xash3d/CryofFear || die
 
 touch config.cfg
 echo 'unbindall'                                     >> config.cfg

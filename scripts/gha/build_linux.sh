@@ -104,8 +104,8 @@ deploy_engine()
 	popd || die
 
 	if [ -d "$APPDIR/valve" ]; then
-		mkdir -p "$APPDIR/CryOfFear"
-		cp -r "$APPDIR/valve/"* "$APPDIR/CryOfFear/"
+		mkdir -p "$APPDIR/CryofFear"
+		cp -r "$APPDIR/valve/"* "$APPDIR/CryofFear/"
 		rm -rf "$APPDIR/valve"
 	fi
 }

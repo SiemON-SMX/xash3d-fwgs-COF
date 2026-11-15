@@ -4,8 +4,8 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
-import androidx.appcompat.app.AlertDialog
 import androidx.core.content.FileProvider
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import su.xash.cryoffear.BuildConfig
 import su.xash.cryoffear.R
 import java.io.BufferedOutputStream
@@ -130,7 +130,7 @@ object CrashReports {
 		val mailtoProbe = Intent(Intent.ACTION_SENDTO, Uri.fromParts("mailto", addr, null))
 		val mailApps = ctx.packageManager.queryIntentActivities(mailtoProbe, 0)
 		if (mailApps.isEmpty()) {
-			AlertDialog.Builder(ctx)
+			MaterialAlertDialogBuilder(ctx)
 				.setTitle(R.string.crash_no_mail_app_title)
 				.setMessage(R.string.crash_no_mail_app_message)
 				.setPositiveButton(android.R.string.ok, null)

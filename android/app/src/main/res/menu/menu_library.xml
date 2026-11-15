@@ -2,8 +2,13 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
 	xmlns:app="http://schemas.android.com/apk/res-auto">
 	<item
+		android:id="@+id/action_download"
+		android:icon="@drawable/ic_baseline_download_24"
+		android:title="@string/download_cryoffear"
+		app:showAsAction="always" />
+	<item
 		android:id="@+id/action_discord"
 		android:icon="@drawable/ic_baseline_discord_24"
-		android:title="@string/discord_rpc"
+		android:title="@string/discord_server"
 		app:showAsAction="always" />
 </menu>
