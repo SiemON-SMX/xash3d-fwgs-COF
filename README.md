@@ -1,55 +1,29 @@
-> [!CAUTION]
-> **Only download Xash3D FWGS from official sources.** Third-party builds, "modded launchers", "optimized" repacks and random mirrors are frequently bundled with malware, miners, spyware and credential stealers. We cannot vouch for anything we did not build. Get official binaries only from the [releases page](https://github.com/FWGS/xash3d-fwgs/releases/tag/continuous).
+# Cry of Fear for Xash3D FWGS Engine <img align="right" width="128" height="128" src="https://github.com/SiemON-SMX/xash3d-fwgs-COF/raw/master/game_launch/icon-xash-material.png" alt="Xash3D FWGS icon" />
+[![GitHub Actions Status](https://github.com/SiemON-SMX/xash3d-fwgs-COF/actions/workflows/c-cpp.yml/badge.svg)](https://github.com/SiemON-SMX/xash3d-fwgs-COF/actions/workflows/c-cpp.yml) \
+[![Discord Server](https://img.shields.io/discord/1480939659021520979?logo=Discord&label=SiemON%20ports%20%28SP%20OF%29)](https://discord.gg/38YzeFrtvJ) \
+[![Download Continuous Build](https://img.shields.io/badge/downloads-continuous-orange)](https://github.com/SiemON-SMX/xash3d-fwgs-COF/releases/tag/continuous)
 
-# Xash3D FWGS Engine <img align="right" width="128" height="128" src="https://github.com/FWGS/xash3d-fwgs/raw/master/game_launch/icon-xash-material.png" alt="Xash3D FWGS icon" />
-[![GitHub Actions Status](https://github.com/FWGS/xash3d-fwgs/actions/workflows/c-cpp.yml/badge.svg)](https://github.com/FWGS/xash3d-fwgs/actions/workflows/c-cpp.yml) [![FreeBSD Build Status](https://img.shields.io/cirrus/github/FWGS/xash3d-fwgs?label=freebsd%20build)](https://cirrus-ci.com/github/FWGS/xash3d-fwgs) \
-[![Discord Server](https://img.shields.io/discord/355697768582610945?logo=Discord&label=International%20Discord%20chat)](http://xash.su/discord/) [![Russian speakers Telegram Chat](https://img.shields.io/badge/Russian_speakers_Telegram_chat-gray?logo=Telegram)](https://t.me/flyingwithgauss) \
-[![Download Daily Build](https://img.shields.io/badge/downloads-testing-orange)](https://github.com/FWGS/xash3d-fwgs/releases/tag/continuous)
+A modified fork of Xash3D FWGS for Cry of Fear reverse-engineered. Adds the engine-side support for the CoF client renderer: Paranoia GL hacks, GL state handoff, gl4es fixes, The renderer itself (GLSL Cg water, spotlight shader, dynamic lights, bump/specular, post-effects, glows, sky, decals) runs in the game's client library.
 
-Xash3D ([pronounced](https://ipa-reader.com/?text=ks%C9%91%CA%82) `[ksɑʂ]`) FWGS is a game engine, aimed to provide compatibility with Half-Life Engine and extend it, as well as to give game developers well known workflow.
-
-Xash3D FWGS is a heavily modified fork of an original [Xash3D Engine](https://www.moddb.com/engines/xash3d-engine) by Unkle Mike.
-
-## Donate
-[![Donate to FWGS button](https://img.shields.io/badge/Donate_to_FWGS-%3C3-magenta)](Documentation/donate.md) \
-If you like Xash3D FWGS, consider supporting individual engine maintainers. By supporting us, you help to continue developing this game engine further. The sponsorship links are available in [documentation](Documentation/donate.md).
-
-## Fork features
-* Steam Half-Life (HLSDK 2.5) support.
-* Crossplatform and modern compilers support: supports Windows, Linux, BSD & Android on x86 & ARM and [many more](Documentation/ports.md).
-* Better multiplayer: multiple master servers, headless dedicated server, voice chat, [GoldSrc protocol support](Documentation/goldsrc-protocol-support.md) and IPv6 support.
-* Multiple renderers support: OpenGL, GLESv1, GLESv2 and Software.
-* Advanced virtual filesystem: `.pk3` and `.pk3dir` support, compatibility with GoldSrc FS module, fast case-insensitivity emulation for crossplatform.
-* Mobility API: better game integration on mobile devices (vibration, touch controls).
-* Different input methods: touch and gamepad in addition to mouse & keyboard.
-* TrueType font rendering, as a part of mainui_cpp.
-* External VGUI support module.
-* PNG & KTX2 image format support.
-* Ogg Vorbis (`.ogg`) & Ogg Opus (`.opus`) audio formats support.
-* [A set of small improvements](Documentation/), without broken compatibility.
+[Android]: Added Game Downloader for download Cry of Fear quickly. Thanks to [hasandramali](https://github.com/hasandramali).
+[Touch]: Removed some touch buttons that's isn't nesscary for game.
 
 ## Installation & Running
-0) Get Xash3D FWGS binaries: you can use [testing](https://github.com/FWGS/xash3d-fwgs/releases/tag/continuous) build or you can compile engine from source code.
-1) Copy engine binaries to some directory.
-2) Copy `valve` directory from [Half-Life](https://store.steampowered.com/app/70/HalfLife/) to directory with engine binaries.
-If your CPU is NOT x86 compatible or you're running 64-bit version of the engine, you may want to compile [Half-Life SDK](https://github.com/FWGS/hlsdk-portable).
-This repository contains our fork of HLSDK and restored source code for Half-Life expansions and some mods.
-You still needed to copy `valve` directory as all game resources located there.
+0) Get Cry of Fear binaries: you can use [testing](https://github.com/SiemON-SMX/xash3d-fwgs-COF/releases/tag/continuous) build or you can compile engine from source code.
+1) Copy engine binaries to some directory. (Don't worry, all binaries are prebuilt)
+2) Copy `CryOfFear` directory from [Cry of Fear](https://store.steampowered.com/app/223710/Cry_of_Fear/) to directory with engine binaries.
 3) Run the main executable (`xash3d.exe` or AppImage).
 
 For additional info, run Xash3D with `-help` command line key.
 
 ### Android
 0) Install the APK file.
-1) Copy `valve` directory to a folder named `xash` in the Internal storage.
-2) Run games from within the app.
+1) Click to download button for download game files from STEAM.
+2) Run Cry of Fear from within the app.
 
 ## Reporting issues
-* Issues are accepted in both English and Russian.
-* They are only accepted if you run legally acquired product (e.g. Half-Life in Steam).
-
-## Contributing code
-* Check the CONTRIBUTING.md file.
+* Issues are accepted in English.
+* You can report issues from our [Discord server](https://discord.gg/38YzeFrtvJ) too.
 
 ## Build instructions
 We are using Waf build system. If you have some Waf-related questions, I recommend you to read [Waf Book](https://waf.io/book/).
@@ -60,7 +34,7 @@ We are using Waf build system. If you have some Waf-related questions, I recomme
 If your CPU is x86 compatible and you're on Windows or Linux, we are building 32-bit code by default. This was done to maintain compatibility with Steam releases of Half-Life and based on it's engine games.
 Even if Xash3D FWGS does support targetting 64-bit, you can't load games without recompiling them from source code!
 
-If your CPU is NOT x86 compatible or you decided build 64-bit version of engine, you may want to compile [Half-Life SDK](https://github.com/FWGS/hlsdk-portable).
+If your CPU is NOT x86 compatible or you decided build 64-bit version of engine, you may want to compile [Half-Life SDK](https://github.com/SiemON-SMX/hlsdk-portable).
 This repository contains our fork of HLSDK and restored source code for Half-Life expansions and some mods.
 
 #### Windows (Visual Studio)
@@ -68,7 +42,7 @@ This repository contains our fork of HLSDK and restored source code for Half-Lif
 * Install latest [Python](https://python.org) **OR** run `cinst python.install` if you have Chocolatey.
 * Install latest [Git](https://git-scm.com/download/win) **OR** run `cinst git.install` if you have Chocolatey.
 * Download [SDL2](https://libsdl.org/download-2.0.php) development package for Visual Studio.
-* Clone this repository: `git clone --recursive https://github.com/FWGS/xash3d-fwgs`.
+* Clone this repository: `git clone --recursive https://github.com/SiemON-SMX/xash3d-fwgs-COF`.
 * Make sure you have at least 12GB of free space to store all build-time dependencies: ~10GB for Visual Studio, 300 MB for Git, 100 MB for Python and other.
 
 #### GNU/Linux
@@ -82,7 +56,7 @@ This repository contains our fork of HLSDK and restored source code for Half-Lif
 * For 64-bit engine on 64-bit x86 and other non-x86 systems:
   * Install development tools: `$ sudo apt install git build-essential python libsdl2-dev libfreetype6-dev libopus-dev libbz2-dev libvorbis-dev libopusfile-dev libogg-dev`.
 
-* Clone this repostory: `$ git clone --recursive https://github.com/FWGS/xash3d-fwgs`.
+* Clone this repostory: `$ git clone --recursive https://github.com/SiemON-SMX/xash3d-fwgs-COF`.
 
 ##### RedHat/Fedora
 * Only for 32-bit engine on 64-bit x86 operating system:
@@ -92,7 +66,7 @@ This repository contains our fork of HLSDK and restored source code for Half-Lif
 * For 64-bit engine on 64-bit x86 and other non-x86 systems:
   * Install development tools: `$ sudo dnf install git gcc gcc-c++ SDL3-devel sdl2-compat-devel opus-devel freetype-devel bzip2-devel libvorbis-devel opusfile-devel libogg-devel`.
 
-* Clone this repostory: `$ git clone --recursive https://github.com/FWGS/xash3d-fwgs`.
+* Clone this repostory: `$ git clone --recursive https://github.com/SiemON-SMX/xash3d-fwgs-COF`.
 
 #### Android (Windows/Linux/macOS)
 * Install [Android Studio](https://developer.android.com/studio) (or the command line tools).
@@ -101,7 +75,7 @@ This repository contains our fork of HLSDK and restored source code for Half-Lif
 * Install [Ninja](https://ninja-build.org/).
 * Install [CMake](https://cmake.org/) (for some dependencies).
 
-* Clone this repostory: `$ git clone --recursive https://github.com/FWGS/xash3d-fwgs`.
+* Clone this repostory: `$ git clone --recursive https://github.com/SiemON-SMX/xash3d-fwgs-COF`.
 * Check out nanogl and gl4es, they aren't checked out by default: `$ git submodule update --init --checkout 3rdparty/nanogl 3rdparty/gl4es/gl4es`.
 
 #### iOS/iPadOS
@@ -112,13 +86,13 @@ This repository contains our fork of HLSDK and restored source code for Half-Lif
 
 * Clone the SDL2 repo `$ git clone --recursive https://github.com/libsdl-org/SDL.git -b SDL2` and compile the iOS framework by navigating to SDL/Xcode/SDL and opening the Xcode project.
 
-* Clone this repository: `$ git clone --recursive https://github.com/FWGS/xash3d-fwgs`.
+* Clone this repository: `$ git clone --recursive https://github.com/SiemON-SMX/xash3d-fwgs-COF`.
 * Check out nanogl, it isn't checked out by default: `$ git submodule update --init --checkout 3rdparty/nanogl`.
 
 ### Building
 #### Windows (Visual Studio)
 0) Open command line.
-1) Navigate to `xash3d-fwgs` directory.
+1) Navigate to `xash3d-fwgs-COF` directory.
 2) (optional) Examine which build options are available: `waf --help`.
 3) Configure build: `waf configure --sdl2=c:/path/to/SDL2`.
 4) Compile: `waf build`.
@@ -133,7 +107,7 @@ If compiling 32-bit on amd64, make sure `PKG_CONFIG_PATH` from the previous step
 3) Install: `./waf install --destdir=/path/to/any/output/directory`.
 
 #### Android (Windows/Linux/macOS)
-To build you should clone [SDL](https://github.com/libsdl-org/SDL) from `SDL2` branch and [HLSDK-portable](https://github.com/FWGS/hlsdk-portable) `mobile-hacks` branch repositories to 3rdparty folder, after that you should be able to open the project in Android Studio from `android` directory or manually call Gradle to build the APK.
+To build you should clone [SDL](https://github.com/libsdl-org/SDL) from `SDL2` branch and [HLSDK-portable](https://github.com/SiemON-SMX/hlsdk-portable) `CryOfFear` branch repositories to 3rdparty folder, after that you should be able to open the project in Android Studio from `android` directory or manually call Gradle to build the APK.
 
 #### iOS/iPadOS (MacOS only)
 0) (optional) Examine which build options are available: `./waf --help`.
