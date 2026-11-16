@@ -157,6 +157,7 @@ class GameDataDownloader(private val ctx: Context) {
             put(JSONObject().apply {
                 put("a", "g")
                 put("g", 1)
+                put("ssl", 2)
                 put("p", MEGA_FILE_ID)
             })
         }.toString()
@@ -194,7 +195,12 @@ class GameDataDownloader(private val ctx: Context) {
                     "Mega.nz returned error $errCode"
                 )
             }
-            val dlUrl = obj.optString("g")
+            val rawUrl = obj.optString("g")
+            val dlUrl = if (rawUrl.startsWith("http://")) {
+                "https://" + rawUrl.removePrefix("http://")
+            } else {
+                rawUrl
+            }
             val size = obj.optLong("s", EXPECTED_ZIP_SIZE)
             if (dlUrl.isBlank()) {
                 throw ServerUnavailableException(DownloadServer.MEGA, "Mega.nz did not return a download URL")
