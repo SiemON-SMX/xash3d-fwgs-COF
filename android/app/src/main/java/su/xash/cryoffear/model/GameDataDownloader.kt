@@ -6,12 +6,14 @@ import android.os.Handler
 import android.os.Looper
 import android.os.StatFs
 import android.util.Log
+import android.webkit.CookieManager
 import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
@@ -138,7 +140,18 @@ class GameDataDownloader(private val ctx: Context) {
     }
 
     @SuppressLint("SetJavaScriptEnabled")
-    private suspend fun resolveGofileDownload(): ResolvedDownload = withTimeout(25_000L) {
+    private suspend fun resolveGofileDownload(): ResolvedDownload {
+        return try {
+            withTimeout(25_000L) {
+                resolveGofileDownloadInner()
+            }
+        } catch (e: TimeoutCancellationException) {
+            throw Exception("Timed out resolving Gofile.io link. Please try again or switch Server to Archive.org.", e)
+        }
+    }
+
+    @SuppressLint("SetJavaScriptEnabled")
+    private suspend fun resolveGofileDownloadInner(): ResolvedDownload =
         withContext(Dispatchers.Main) {
             suspendCancellableCoroutine { cont ->
                 var webView: WebView? = null
@@ -172,12 +185,22 @@ class GameDataDownloader(private val ctx: Context) {
                             view: WebView?,
                             request: WebResourceRequest?
                         ): WebResourceResponse? {
-                            val reqUrl = request?.url?.toString() ?: return null
+                            val urlObj = request?.url ?: return null
+                            val reqUrl = urlObj.toString()
                             if (reqUrl.contains("api.gofile.io/contents/$GOFILE_FOLDER_ID")) {
                                 val headers = request.requestHeaders ?: emptyMap()
-                                val auth = headers["Authorization"] ?: headers["authorization"]
-                                val wt = headers["X-Website-Token"] ?: headers["x-website-token"]
-                                val ua = headers["User-Agent"] ?: headers["user-agent"] ?: webViewUa
+                                var auth = headers.entries.firstOrNull { it.key.equals("Authorization", ignoreCase = true) }?.value
+                                if (auth.isNullOrBlank()) {
+                                    val cookieStr = CookieManager.getInstance().getCookie("https://gofile.io") ?: ""
+                                    val tokenMatch = Regex("accountToken=([^;\\s]+)").find(cookieStr)
+                                    if (tokenMatch != null) {
+                                        auth = "Bearer ${tokenMatch.groupValues[1]}"
+                                    }
+                                }
+                                val wt = headers.entries.firstOrNull { it.key.equals("X-Website-Token", ignoreCase = true) }?.value
+                                    ?: urlObj.getQueryParameter("wt")
+                                val ua = headers.entries.firstOrNull { it.key.equals("User-Agent", ignoreCase = true) }?.value
+                                    ?: webViewUa
                                 if (!auth.isNullOrBlank() && !wt.isNullOrBlank()) {
                                     if (intercepted.compareAndSet(false, true)) {
                                         try {
@@ -198,22 +221,46 @@ class GameDataDownloader(private val ctx: Context) {
                         }
 
                         override fun onPageFinished(view: WebView?, url: String?) {
-                            mainHandler.postDelayed({
-                                if (finished) return@postDelayed
-                                view?.evaluateJavascript(
-                                    "(function(){return document.body ? document.body.innerText : '';})()"
-                                ) { text ->
-                                    if (finished) return@evaluateJavascript
-                                    val lower = (text ?: "").lowercase()
-                                    if (lower.contains("does not exist") ||
-                                        lower.contains("not found") ||
-                                        lower.contains("has been deleted") ||
-                                        lower.contains("removed")
-                                    ) {
-                                        finish(Result.failure(GofileFileDeletedException("The file on Gofile.io was deleted or does not exist.")))
+                            fun pollDom(attempt: Int) {
+                                if (finished || attempt > 8) return
+                                mainHandler.postDelayed({
+                                    if (finished) return@postDelayed
+                                    view?.evaluateJavascript(
+                                        """
+                                        (function(){
+                                            var a = document.querySelector('a[href*="5821301.zip"], a[href*="gofile.io/download"]');
+                                            var href = a ? a.href : '';
+                                            var txt = document.body ? document.body.innerText : '';
+                                            return JSON.stringify({href: href, txt: txt});
+                                        })()
+                                        """.trimIndent()
+                                    ) { raw ->
+                                        if (finished) return@evaluateJavascript
+                                        try {
+                                            val unquoted = JSONObject("{\"v\":$raw}").optString("v")
+                                            val obj = JSONObject(unquoted)
+                                            val href = obj.optString("href")
+                                            val lower = obj.optString("txt").lowercase()
+                                            if (href.startsWith("http")) {
+                                                val cookieStr = CookieManager.getInstance().getCookie("https://gofile.io")
+                                                finish(Result.success(ResolvedDownload(href, cookieStr, EXPECTED_ZIP_SIZE)))
+                                                return@evaluateJavascript
+                                            }
+                                            if (lower.contains("does not exist") ||
+                                                lower.contains("not found") ||
+                                                lower.contains("has been deleted") ||
+                                                lower.contains("removed")
+                                            ) {
+                                                finish(Result.failure(GofileFileDeletedException("The file on Gofile.io was deleted or does not exist.")))
+                                                return@evaluateJavascript
+                                            }
+                                        } catch (_: Exception) {
+                                        }
+                                        pollDom(attempt + 1)
                                     }
-                                }
-                            }, 3500L)
+                                }, 1500L)
+                            }
+                            pollDom(0)
                         }
                     }
 
@@ -233,7 +280,6 @@ class GameDataDownloader(private val ctx: Context) {
                 }
             }
         }
-    }
 
     private fun fetchGofileApi(
         apiUrl: String,
