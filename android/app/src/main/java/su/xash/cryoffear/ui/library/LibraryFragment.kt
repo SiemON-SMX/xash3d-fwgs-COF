@@ -150,7 +150,7 @@ class LibraryFragment : Fragment(), MenuProvider {
 		} else {
 			MaterialAlertDialogBuilder(ctx)
 				.setTitle(R.string.install_cryoffear_title)
-				.setMessage("Server: ${selectedServer.label}\nDownload size: 2.58 GB (4.37 GB extracted)")
+				.setMessage(getString(R.string.download_dialog_message, getString(selectedServer.labelRes)))
 				.setPositiveButton(android.R.string.yes) { _, _ -> beginCryOfFearDownload(selectedServer) }
 				.setNeutralButton(R.string.server) { _, _ -> showDownloadServerDialog { startCryOfFearDownload() } }
 				.setNegativeButton(android.R.string.no, null)
@@ -162,7 +162,7 @@ class LibraryFragment : Fragment(), MenuProvider {
 		val ctx = requireContext()
 		val downloader = GameDataDownloader(ctx)
 		val servers = GameDataDownloader.DownloadServer.entries
-		val titles = servers.map { it.label }.toTypedArray()
+		val titles = servers.map { getString(it.labelRes) }.toTypedArray()
 		val checkedIndex = servers.indexOf(downloader.getSelectedServer()).coerceAtLeast(0)
 
 		MaterialAlertDialogBuilder(ctx)
@@ -170,7 +170,7 @@ class LibraryFragment : Fragment(), MenuProvider {
 			.setSingleChoiceItems(titles, checkedIndex) { dialog, index ->
 				val chosen = servers[index]
 				downloader.setSelectedServer(chosen)
-				Toast.makeText(ctx, chosen.label, Toast.LENGTH_SHORT).show()
+				Toast.makeText(ctx, chosen.labelRes, Toast.LENGTH_SHORT).show()
 				dialog.dismiss()
 				onDone()
 			}
@@ -232,13 +232,17 @@ class LibraryFragment : Fragment(), MenuProvider {
 								b.downloadProgressContainer.visibility = View.GONE
 								refreshDownloadAction()
 								val errorMsg = state.message
-								if (state.isGofileDeleted) {
+								val failedServer = state.unavailableServer
+								if (failedServer != null) {
+									val altServer = failedServer.alternate()
+									val failedName = getString(failedServer.labelRes)
+									val altName = getString(altServer.labelRes)
 									MaterialAlertDialogBuilder(requireContext())
-										.setTitle(R.string.gofile_deleted_title)
-										.setMessage(R.string.gofile_deleted_message)
-										.setPositiveButton(R.string.download_from_archive) { _, _ ->
+										.setTitle(getString(R.string.server_unavailable_title, failedName))
+										.setMessage(getString(R.string.server_unavailable_message, failedName, altName))
+										.setPositiveButton(getString(R.string.download_from_server, altName)) { _, _ ->
 											DownloadService.resetState()
-											beginCryOfFearDownload(GameDataDownloader.DownloadServer.ARCHIVE_ORG)
+											beginCryOfFearDownload(altServer)
 										}
 										.setNegativeButton(android.R.string.cancel) { _, _ ->
 											DownloadService.resetState()
@@ -251,7 +255,7 @@ class LibraryFragment : Fragment(), MenuProvider {
 										.setPositiveButton(android.R.string.ok) { _, _ ->
 											DownloadService.resetState()
 										}
-										.setNeutralButton("Copy") { _, _ ->
+										.setNeutralButton(R.string.copy) { _, _ ->
 											val clipboard = requireContext().getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
 											clipboard.setPrimaryClip(ClipData.newPlainText("Error", errorMsg))
 										}

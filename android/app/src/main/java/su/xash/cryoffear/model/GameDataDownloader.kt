@@ -1,56 +1,60 @@
 package su.xash.cryoffear.model
 
-import android.annotation.SuppressLint
 import android.content.Context
-import android.os.Handler
-import android.os.Looper
 import android.os.StatFs
+import android.util.Base64
 import android.util.Log
-import android.webkit.CookieManager
-import android.webkit.WebResourceRequest
-import android.webkit.WebResourceResponse
-import android.webkit.WebView
-import android.webkit.WebViewClient
+import androidx.annotation.StringRes
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.TimeoutCancellationException
-import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
-import kotlinx.coroutines.withTimeout
+import org.json.JSONArray
 import org.json.JSONObject
+import su.xash.cryoffear.R
 import su.xash.cryoffear.util.Prefs
-import java.io.ByteArrayInputStream
 import java.io.File
 import java.io.FileOutputStream
 import java.io.RandomAccessFile
 import java.net.HttpURLConnection
 import java.net.URL
+import java.nio.ByteBuffer
 import java.util.Locale
-import java.util.concurrent.atomic.AtomicBoolean
 import java.util.zip.CRC32
 import java.util.zip.ZipFile
-import kotlin.coroutines.resume
-import kotlin.coroutines.resumeWithException
+import javax.crypto.Cipher
+import javax.crypto.spec.IvParameterSpec
+import javax.crypto.spec.SecretKeySpec
 
-class GofileFileDeletedException(message: String) : Exception(message)
+class ServerUnavailableException(
+    val failedServer: GameDataDownloader.DownloadServer,
+    message: String
+) : Exception(message)
 
 class GameDataDownloader(private val ctx: Context) {
 
-    enum class DownloadServer(val id: String, val label: String) {
-        GOFILE("gofile", "GoFile (fast)"),
-        ARCHIVE_ORG("archive", "Internet Archive (slow)")
+    enum class DownloadServer(val id: String, @StringRes val labelRes: Int) {
+        MEGA("mega", R.string.server_mega),
+        ARCHIVE_ORG("archive", R.string.server_archive);
+
+        fun alternate(): DownloadServer = when (this) {
+            MEGA -> ARCHIVE_ORG
+            ARCHIVE_ORG -> MEGA
+        }
     }
 
-    data class ResolvedDownload(
+    private data class MegaKey(val aesKey: ByteArray, val nonce: ByteArray)
+
+    private data class ResolvedDownload(
         val url: String,
-        val cookie: String? = null,
-        val expectedSize: Long = EXPECTED_ZIP_SIZE
+        val expectedSize: Long = EXPECTED_ZIP_SIZE,
+        val megaKey: MegaKey? = null
     )
 
     companion object {
         private const val TAG = "GameDataDownloader"
-        const val GOFILE_FOLDER_ID = "47VUwgny"
-        const val GOFILE_PAGE_URL = "https://gofile.io/d/$GOFILE_FOLDER_ID"
+        private const val MEGA_FILE_ID = "GywFHawD"
+        private const val MEGA_FILE_KEY = "1aKJRurbIxsYV11r1TDcZ04VKkpUB-wTD2Uuv_lOUgU"
+        private const val MEGA_API_URL = "https://g.api.mega.co.nz/cs?id=1"
         const val ARCHIVE_ORG_URL = "https://archive.org/download/223710/5821301.zip"
         const val EXPECTED_ZIP_SIZE = 2774149259L
         const val EXPECTED_UNCOMPRESSED_SIZE = 4695601334L
@@ -78,8 +82,8 @@ class GameDataDownloader(private val ctx: Context) {
     }
 
     fun getSelectedServer(): DownloadServer {
-        val saved = prefs.getString(PREF_SERVER, DownloadServer.GOFILE.id)
-        return DownloadServer.entries.firstOrNull { it.id == saved } ?: DownloadServer.GOFILE
+        val saved = prefs.getString(PREF_SERVER, DownloadServer.MEGA.id)
+        return DownloadServer.entries.firstOrNull { it.id == saved } ?: DownloadServer.MEGA
     }
 
     fun setSelectedServer(server: DownloadServer) {
@@ -97,16 +101,15 @@ class GameDataDownloader(private val ctx: Context) {
             val tmpZip = File(basedir, "5821301.zip.tmp")
 
             val resolved = when (server) {
-                DownloadServer.GOFILE -> {
-                    onStatus("Resolving Gofile.io link...")
-                    resolveGofileDownload()
+                DownloadServer.MEGA -> {
+                    onStatus(ctx.getString(R.string.download_status_resolving_mega))
+                    resolveMegaDownload()
                 }
                 DownloadServer.ARCHIVE_ORG -> {
                     ResolvedDownload(url = ARCHIVE_ORG_URL, expectedSize = EXPECTED_ZIP_SIZE)
                 }
             }
 
-            // ensure enough space for the zip (plus extracted files if zip isn't already downloaded)
             val stat = StatFs(basedir.absolutePath)
             val neededForZip = (resolved.expectedSize - tmpZip.length()).coerceAtLeast(0L)
             val requiredBytes = neededForZip + EXPECTED_UNCOMPRESSED_SIZE + 64L * 1024L * 1024L
@@ -116,13 +119,12 @@ class GameDataDownloader(private val ctx: Context) {
                 )
             }
 
-            onStatus("Downloading 5821301.zip...")
-            downloadFileWithResume(resolved.url, resolved.cookie, tmpZip, resolved.expectedSize, onProgress, onStatus)
+            onStatus(ctx.getString(R.string.download_status_downloading, formatBytes(tmpZip.length()), formatBytes(resolved.expectedSize)))
+            downloadFileWithResume(server, resolved, tmpZip, onProgress, onStatus)
 
-            onStatus("Verifying downloaded archive...")
+            onStatus(ctx.getString(R.string.download_status_verifying))
             verifyZipArchive(tmpZip)
 
-            onStatus("Extracting Cry of Fear...")
             extractCryOfFearZip(tmpZip, basedir, onProgress, onStatus)
 
             tmpZip.delete()
@@ -139,228 +141,97 @@ class GameDataDownloader(private val ctx: Context) {
         }
     }
 
-    @SuppressLint("SetJavaScriptEnabled")
-    private suspend fun resolveGofileDownload(): ResolvedDownload {
-        return try {
-            withTimeout(25_000L) {
-                resolveGofileDownloadInner()
+    private fun decodeMegaKey(keyStr: String): MegaKey {
+        val raw = Base64.decode(keyStr, Base64.URL_SAFE or Base64.NO_PADDING or Base64.NO_WRAP)
+        if (raw.size < 32) throw IllegalArgumentException("Invalid Mega key length: ${raw.size}")
+        val aesKey = ByteArray(16)
+        for (i in 0 until 16) {
+            aesKey[i] = (raw[i].toInt() xor raw[i + 16].toInt()).toByte()
+        }
+        val nonce = raw.copyOfRange(16, 24)
+        return MegaKey(aesKey, nonce)
+    }
+
+    private fun resolveMegaDownload(): ResolvedDownload {
+        val payload = JSONArray().apply {
+            put(JSONObject().apply {
+                put("a", "g")
+                put("g", 1)
+                put("p", MEGA_FILE_ID)
+            })
+        }.toString()
+
+        val conn = (URL(MEGA_API_URL).openConnection() as HttpURLConnection).apply {
+            requestMethod = "POST"
+            doOutput = true
+            connectTimeout = 15_000
+            readTimeout = 15_000
+            setRequestProperty("Content-Type", "application/json")
+            setRequestProperty("User-Agent", "Mozilla/5.0")
+        }
+        try {
+            conn.outputStream.use { it.write(payload.toByteArray(Charsets.UTF_8)) }
+            val code = conn.responseCode
+            if (code !in 200..299) {
+                throw ServerUnavailableException(DownloadServer.MEGA, "Mega.nz API error (HTTP $code)")
             }
-        } catch (e: TimeoutCancellationException) {
-            throw Exception("Timed out resolving Gofile.io link. Please try again or switch Server to Archive.org.", e)
+            val body = conn.inputStream.bufferedReader().use { it.readText() }
+            val arr = JSONArray(body)
+            val first = arr.opt(0)
+            if (first is Number) {
+                val errCode = first.toInt()
+                throw ServerUnavailableException(
+                    DownloadServer.MEGA,
+                    "Mega.nz returned error $errCode"
+                )
+            }
+            val obj = first as? JSONObject
+                ?: throw ServerUnavailableException(DownloadServer.MEGA, "Unexpected Mega.nz response")
+            if (obj.has("e")) {
+                val errCode = obj.optInt("e")
+                throw ServerUnavailableException(
+                    DownloadServer.MEGA,
+                    "Mega.nz returned error $errCode"
+                )
+            }
+            val dlUrl = obj.optString("g")
+            val size = obj.optLong("s", EXPECTED_ZIP_SIZE)
+            if (dlUrl.isBlank()) {
+                throw ServerUnavailableException(DownloadServer.MEGA, "Mega.nz did not return a download URL")
+            }
+            return ResolvedDownload(
+                url = dlUrl,
+                expectedSize = if (size > 0L) size else EXPECTED_ZIP_SIZE,
+                megaKey = decodeMegaKey(MEGA_FILE_KEY)
+            )
+        } finally {
+            conn.disconnect()
         }
     }
 
-    @SuppressLint("SetJavaScriptEnabled")
-    private suspend fun resolveGofileDownloadInner(): ResolvedDownload =
-        withContext(Dispatchers.Main) {
-            suspendCancellableCoroutine { cont ->
-                var webView: WebView? = null
-                var finished = false
-                val mainHandler = Handler(Looper.getMainLooper())
-
-                fun finish(result: Result<ResolvedDownload>) {
-                    if (finished) return
-                    finished = true
-                    mainHandler.post {
-                        try {
-                            webView?.stopLoading()
-                            webView?.destroy()
-                        } catch (_: Throwable) {
-                        }
-                    }
-                    result.onSuccess { cont.resume(it) }
-                        .onFailure { cont.resumeWithException(it) }
-                }
-
-                try {
-                    val wv = WebView(ctx.applicationContext)
-                    webView = wv
-                    wv.settings.javaScriptEnabled = true
-                    wv.settings.domStorageEnabled = true
-                    val webViewUa = wv.settings.userAgentString
-                    val intercepted = AtomicBoolean(false)
-
-                    wv.webViewClient = object : WebViewClient() {
-                        override fun shouldInterceptRequest(
-                            view: WebView?,
-                            request: WebResourceRequest?
-                        ): WebResourceResponse? {
-                            val urlObj = request?.url ?: return null
-                            val reqUrl = urlObj.toString()
-                            if (reqUrl.contains("api.gofile.io/contents/$GOFILE_FOLDER_ID")) {
-                                val headers = request.requestHeaders ?: emptyMap()
-                                var auth = headers.entries.firstOrNull { it.key.equals("Authorization", ignoreCase = true) }?.value
-                                if (auth.isNullOrBlank()) {
-                                    val cookieStr = CookieManager.getInstance().getCookie("https://gofile.io") ?: ""
-                                    val tokenMatch = Regex("accountToken=([^;\\s]+)").find(cookieStr)
-                                    if (tokenMatch != null) {
-                                        auth = "Bearer ${tokenMatch.groupValues[1]}"
-                                    }
-                                }
-                                val wt = headers.entries.firstOrNull { it.key.equals("X-Website-Token", ignoreCase = true) }?.value
-                                    ?: urlObj.getQueryParameter("wt")
-                                val ua = headers.entries.firstOrNull { it.key.equals("User-Agent", ignoreCase = true) }?.value
-                                    ?: webViewUa
-                                if (!auth.isNullOrBlank() && !wt.isNullOrBlank()) {
-                                    if (intercepted.compareAndSet(false, true)) {
-                                        try {
-                                            val resolved = fetchGofileApi(reqUrl, auth, wt, ua)
-                                            finish(Result.success(resolved))
-                                        } catch (e: Exception) {
-                                            finish(Result.failure(e))
-                                        }
-                                    }
-                                    return WebResourceResponse(
-                                        "application/json",
-                                        "utf-8",
-                                        ByteArrayInputStream("{\"status\":\"ok\"}".toByteArray())
-                                    )
-                                }
-                            }
-                            return super.shouldInterceptRequest(view, request)
-                        }
-
-                        override fun onPageFinished(view: WebView?, url: String?) {
-                            fun pollDom(attempt: Int) {
-                                if (finished || attempt > 8) return
-                                mainHandler.postDelayed({
-                                    if (finished) return@postDelayed
-                                    view?.evaluateJavascript(
-                                        """
-                                        (function(){
-                                            var a = document.querySelector('a[href*="5821301.zip"], a[href*="gofile.io/download"]');
-                                            var href = a ? a.href : '';
-                                            var txt = document.body ? document.body.innerText : '';
-                                            return JSON.stringify({href: href, txt: txt});
-                                        })()
-                                        """.trimIndent()
-                                    ) { raw ->
-                                        if (finished) return@evaluateJavascript
-                                        try {
-                                            val unquoted = JSONObject("{\"v\":$raw}").optString("v")
-                                            val obj = JSONObject(unquoted)
-                                            val href = obj.optString("href")
-                                            val lower = obj.optString("txt").lowercase()
-                                            if (href.startsWith("http")) {
-                                                val cookieStr = CookieManager.getInstance().getCookie("https://gofile.io")
-                                                finish(Result.success(ResolvedDownload(href, cookieStr, EXPECTED_ZIP_SIZE)))
-                                                return@evaluateJavascript
-                                            }
-                                            if (lower.contains("does not exist") ||
-                                                lower.contains("not found") ||
-                                                lower.contains("has been deleted") ||
-                                                lower.contains("removed")
-                                            ) {
-                                                finish(Result.failure(GofileFileDeletedException("The file on Gofile.io was deleted or does not exist.")))
-                                                return@evaluateJavascript
-                                            }
-                                        } catch (_: Exception) {
-                                        }
-                                        pollDom(attempt + 1)
-                                    }
-                                }, 1500L)
-                            }
-                            pollDom(0)
-                        }
-                    }
-
-                    cont.invokeOnCancellation {
-                        mainHandler.post {
-                            try {
-                                wv.stopLoading()
-                                wv.destroy()
-                            } catch (_: Throwable) {
-                            }
-                        }
-                    }
-
-                    wv.loadUrl(GOFILE_PAGE_URL)
-                } catch (e: Exception) {
-                    finish(Result.failure(e))
-                }
-            }
+    private fun createMegaCtrCipher(key: MegaKey, byteOffset: Long): Cipher {
+        val blockCounter = byteOffset / 16L
+        val iv = ByteArray(16)
+        System.arraycopy(key.nonce, 0, iv, 0, 8)
+        ByteBuffer.wrap(iv, 8, 8).putLong(blockCounter)
+        return Cipher.getInstance("AES/CTR/NoPadding").apply {
+            init(Cipher.DECRYPT_MODE, SecretKeySpec(key.aesKey, "AES"), IvParameterSpec(iv))
         }
-
-    private fun fetchGofileApi(
-        apiUrl: String,
-        authHeader: String,
-        websiteToken: String,
-        userAgent: String
-    ): ResolvedDownload {
-        for (attempt in 0..1) {
-            val conn = (URL(apiUrl).openConnection() as HttpURLConnection).apply {
-                connectTimeout = 15_000
-                readTimeout = 15_000
-                setRequestProperty("Authorization", authHeader)
-                setRequestProperty("X-Website-Token", websiteToken)
-                setRequestProperty("User-Agent", userAgent)
-            }
-            try {
-                val code = conn.responseCode
-                if (code == 429) {
-                    if (attempt == 0) {
-                        val retrySec = conn.getHeaderField("Retry-After")?.toLongOrNull()?.coerceIn(1L, 5L) ?: 2L
-                        Thread.sleep(retrySec * 1000L)
-                        continue
-                    }
-                    throw Exception("Gofile.io rate limited (HTTP 429). Please try again shortly or switch Server to Archive.org.")
-                }
-                val stream = if (code in 200..299) conn.inputStream else conn.errorStream
-                val body = stream?.bufferedReader()?.use { it.readText() } ?: ""
-                if (code == 404 || code == 410) {
-                    throw GofileFileDeletedException("The file on Gofile.io was deleted (HTTP $code).")
-                }
-                if (code !in 200..299) {
-                    throw Exception("Gofile API error (HTTP $code)")
-                }
-                val json = JSONObject(body)
-                val status = json.optString("status")
-                if (status == "error-notFound" || status == "error-notPublic") {
-                    throw GofileFileDeletedException("The file on Gofile.io was deleted or is no longer public.")
-                }
-                if (status != "ok") {
-                    throw Exception("Gofile returned status: $status")
-                }
-                val children = json.getJSONObject("data").optJSONObject("children")
-                    ?: throw GofileFileDeletedException("No files found in Gofile folder.")
-                val keys = children.keys()
-                var bestUrl: String? = null
-                var bestSize = EXPECTED_ZIP_SIZE
-                while (keys.hasNext()) {
-                    val child = children.optJSONObject(keys.next()) ?: continue
-                    val name = child.optString("name")
-                    val link = child.optString("link")
-                    if (link.isNotBlank() && (name.equals("5821301.zip", ignoreCase = true) || bestUrl == null)) {
-                        bestUrl = link
-                        val s = child.optLong("size", 0L)
-                        if (s > 0L) bestSize = s
-                    }
-                }
-                if (bestUrl.isNullOrBlank()) {
-                    throw GofileFileDeletedException("5821301.zip was not found in Gofile folder.")
-                }
-                val token = authHeader.removePrefix("Bearer ").trim()
-                return ResolvedDownload(
-                    url = bestUrl,
-                    cookie = if (token.isNotEmpty()) "accountToken=$token" else null,
-                    expectedSize = bestSize
-                )
-            } finally {
-                conn.disconnect()
-            }
-        }
-        throw Exception("Gofile API error (HTTP 429)")
     }
 
     private suspend fun downloadFileWithResume(
-        startUrl: String,
-        cookie: String?,
+        server: DownloadServer,
+        resolved: ResolvedDownload,
         outFile: File,
-        expectedSize: Long,
         onProgress: suspend (Long, Long) -> Unit,
         onStatus: (String) -> Unit
     ) {
+        val expectedSize = resolved.expectedSize
         var existingBytes = if (outFile.isFile) outFile.length() else 0L
+        if (resolved.megaKey != null && existingBytes > 0L) {
+            // Align to 16-byte AES-CTR block boundary
+            existingBytes = (existingBytes / 16L) * 16L
+        }
         if (existingBytes > expectedSize) {
             outFile.delete()
             existingBytes = 0L
@@ -370,7 +241,7 @@ class GameDataDownloader(private val ctx: Context) {
             return
         }
 
-        var currentUrl = startUrl
+        var currentUrl = resolved.url
         var conn: HttpURLConnection? = null
         for (redirect in 0 until 8) {
             val c = (URL(currentUrl).openConnection() as HttpURLConnection).apply {
@@ -378,7 +249,6 @@ class GameDataDownloader(private val ctx: Context) {
                 connectTimeout = 20_000
                 readTimeout = 30_000
                 setRequestProperty("User-Agent", "Mozilla/5.0")
-                if (!cookie.isNullOrBlank()) setRequestProperty("Cookie", cookie)
                 if (existingBytes > 0L) setRequestProperty("Range", "bytes=$existingBytes-")
             }
             val code = c.responseCode
@@ -396,14 +266,11 @@ class GameDataDownloader(private val ctx: Context) {
 
         try {
             val code = activeConn.responseCode
-            if (code == 404 || code == 410) {
-                if (startUrl.contains("gofile.io")) {
-                    throw GofileFileDeletedException("The file on Gofile.io was deleted (HTTP $code).")
-                }
-                throw Exception("Download URL returned HTTP $code")
+            if (code == 403 || code == 404 || code == 410 || code == 451 || code == 509) {
+                throw ServerUnavailableException(server, "${ctx.getString(server.labelRes)} returned HTTP $code")
             }
             if (code != 200 && code != 206) {
-                throw Exception("Server returned HTTP $code")
+                throw Exception("${ctx.getString(server.labelRes)} returned HTTP $code")
             }
 
             val append = code == 206 && existingBytes > 0L
@@ -415,10 +282,12 @@ class GameDataDownloader(private val ctx: Context) {
                 else -> expectedSize
             }
 
+            val cipher = resolved.megaKey?.let { createMegaCtrCipher(it, existingBytes) }
+
             var downloaded = existingBytes
             var lastUiUpdate = 0L
             onProgress(downloaded, totalBytes)
-            onStatus("Downloading: ${formatBytes(downloaded)} / ${formatBytes(totalBytes)}")
+            onStatus(ctx.getString(R.string.download_status_downloading, formatBytes(downloaded), formatBytes(totalBytes)))
 
             activeConn.inputStream.use { input ->
                 RandomAccessFile(outFile, "rw").use { raf ->
@@ -428,13 +297,26 @@ class GameDataDownloader(private val ctx: Context) {
                     while (true) {
                         val read = input.read(buffer)
                         if (read == -1) break
-                        raf.write(buffer, 0, read)
+                        if (cipher != null) {
+                            val decrypted = cipher.update(buffer, 0, read)
+                            if (decrypted != null && decrypted.isNotEmpty()) {
+                                raf.write(decrypted)
+                            }
+                        } else {
+                            raf.write(buffer, 0, read)
+                        }
                         downloaded += read
                         val now = System.currentTimeMillis()
                         if (now - lastUiUpdate >= 250L || downloaded >= totalBytes) {
                             lastUiUpdate = now
                             onProgress(downloaded, totalBytes)
-                            onStatus("Downloading: ${formatBytes(downloaded)} / ${formatBytes(totalBytes)}")
+                            onStatus(ctx.getString(R.string.download_status_downloading, formatBytes(downloaded), formatBytes(totalBytes)))
+                        }
+                    }
+                    if (cipher != null) {
+                        val tail = cipher.doFinal()
+                        if (tail != null && tail.isNotEmpty()) {
+                            raf.write(tail)
                         }
                     }
                 }
@@ -535,7 +417,7 @@ class GameDataDownloader(private val ctx: Context) {
                             if (now - lastUiUpdate >= 250L) {
                                 lastUiUpdate = now
                                 onProgress(extractedBytes, totalBytesToExtract)
-                                onStatus("Extracting: ${formatBytes(extractedBytes)} / ${formatBytes(totalBytesToExtract)}")
+                                onStatus(ctx.getString(R.string.download_status_extracting, formatBytes(extractedBytes), formatBytes(totalBytesToExtract)))
                             }
                         }
                     }

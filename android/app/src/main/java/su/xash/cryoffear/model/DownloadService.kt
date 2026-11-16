@@ -57,7 +57,7 @@ class DownloadService : Service() {
                 val targetPath = intent.getStringExtra(EXTRA_TARGET) ?: return START_NOT_STICKY
                 val serverId = intent.getStringExtra(EXTRA_SERVER)
                 val server = GameDataDownloader.DownloadServer.entries.firstOrNull { it.id == serverId }
-                    ?: GameDataDownloader.DownloadServer.GOFILE
+                    ?: GameDataDownloader.DownloadServer.MEGA
                 startDownload(File(targetPath), server)
             }
             ACTION_CANCEL -> cancelDownload()
@@ -111,13 +111,15 @@ class DownloadService : Service() {
                 } else {
                     val ex = result.exceptionOrNull()
                     val err = ex?.message ?: "Unknown error"
-                    _state.value = DownloadState.Error(err, ex is GofileFileDeletedException)
+                    val unavailableServer = (ex as? ServerUnavailableException)?.failedServer
+                    _state.value = DownloadState.Error(err, unavailableServer)
                     showCompletionNotification(false, err)
                 }
             } catch (e: CancellationException) {
                 _state.value = DownloadState.Cancelled
             } catch (e: Exception) {
-                _state.value = DownloadState.Error(e.message ?: "Unknown error", e is GofileFileDeletedException)
+                val unavailableServer = (e as? ServerUnavailableException)?.failedServer
+                _state.value = DownloadState.Error(e.message ?: "Unknown error", unavailableServer)
                 showCompletionNotification(false, e.message)
             } finally {
                 stopForeground(STOP_FOREGROUND_REMOVE)
@@ -299,6 +301,9 @@ sealed class DownloadState {
     object Idle : DownloadState()
     data class Downloading(val current: Long, val total: Long, val status: String) : DownloadState()
     object Success : DownloadState()
-    data class Error(val message: String, val isGofileDeleted: Boolean = false) : DownloadState()
+    data class Error(
+        val message: String,
+        val unavailableServer: GameDataDownloader.DownloadServer? = null
+    ) : DownloadState()
     object Cancelled : DownloadState()
 }
