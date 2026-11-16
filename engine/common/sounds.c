@@ -309,21 +309,20 @@ static const char default_sounds_lst[] =
 "BounceConcrete \"debris/concrete%d.wav\" 1 3\n"
 "BounceGlass \"debris/glass%d.wav\" 1 4\n"
 "BounceMetal \"debris/metal%d.wav\" 1 6\n"
-"BounceFlesh \"debris/flesh%d.wav\" 1 7\n"
-"BounceWood \"debris/wood%d.wav\" 1 4\n"
-"Ricochet \"weapons/ric%d.wav\" 1 5\n"
-"Explode \"weapons/explode%d.wav\" 3 5\n"
-"EntityWaterEnter \"player/pl_wade%d.wav\" 1 4\n"
-"EntityWaterExit \"player/pl_wade%d.wav\" 1 4\n"
-"PlayerWaterEnter\n"
+"BounceFlesh\n"
 "{\n"
-"	\"player/pl_wade1.wav\"\n"
+"	\"debris/flesh1.wav\"\n"
+"	\"debris/flesh2.wav\"\n"
+"	\"debris/flesh3.wav\"\n"
+"	\"debris/flesh5.wav\"\n"
+"	\"debris/flesh6.wav\"\n"
+"	\"debris/flesh7.wav\"\n"
 "}\n"
 "\n"
-"PlayerWaterExit\n"
-"{\n"
-"	\"player/pl_wade2.wav\"\n"
-"}\n";
+"BounceWood \"debris/wood%d.wav\" 1 4\n"
+"Ricochet \"weapons/ric%d.wav\" 1 5\n"
+"Explode \"weapons/explode%d.wav\" 3 5\n";
+// cry of fear has no pl_wade sounds, the game plays its own water splashes
 
 static void SoundList_Reload_f( void )
 {
