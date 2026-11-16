@@ -17,12 +17,14 @@ import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 import org.json.JSONObject
 import su.xash.cryoffear.util.Prefs
+import java.io.ByteArrayInputStream
 import java.io.File
 import java.io.FileOutputStream
 import java.io.RandomAccessFile
 import java.net.HttpURLConnection
 import java.net.URL
 import java.util.Locale
+import java.util.concurrent.atomic.AtomicBoolean
 import java.util.zip.CRC32
 import java.util.zip.ZipFile
 import kotlin.coroutines.resume
@@ -162,6 +164,8 @@ class GameDataDownloader(private val ctx: Context) {
                     webView = wv
                     wv.settings.javaScriptEnabled = true
                     wv.settings.domStorageEnabled = true
+                    val webViewUa = wv.settings.userAgentString
+                    val intercepted = AtomicBoolean(false)
 
                     wv.webViewClient = object : WebViewClient() {
                         override fun shouldInterceptRequest(
@@ -173,15 +177,21 @@ class GameDataDownloader(private val ctx: Context) {
                                 val headers = request.requestHeaders ?: emptyMap()
                                 val auth = headers["Authorization"] ?: headers["authorization"]
                                 val wt = headers["X-Website-Token"] ?: headers["x-website-token"]
+                                val ua = headers["User-Agent"] ?: headers["user-agent"] ?: webViewUa
                                 if (!auth.isNullOrBlank() && !wt.isNullOrBlank()) {
-                                    Thread {
+                                    if (intercepted.compareAndSet(false, true)) {
                                         try {
-                                            val resolved = fetchGofileApi(reqUrl, auth, wt)
+                                            val resolved = fetchGofileApi(reqUrl, auth, wt, ua)
                                             finish(Result.success(resolved))
                                         } catch (e: Exception) {
                                             finish(Result.failure(e))
                                         }
-                                    }.start()
+                                    }
+                                    return WebResourceResponse(
+                                        "application/json",
+                                        "utf-8",
+                                        ByteArrayInputStream("{\"status\":\"ok\"}".toByteArray())
+                                    )
                                 }
                             }
                             return super.shouldInterceptRequest(view, request)
@@ -225,59 +235,75 @@ class GameDataDownloader(private val ctx: Context) {
         }
     }
 
-    private fun fetchGofileApi(apiUrl: String, authHeader: String, websiteToken: String): ResolvedDownload {
-        val conn = (URL(apiUrl).openConnection() as HttpURLConnection).apply {
-            connectTimeout = 15_000
-            readTimeout = 15_000
-            setRequestProperty("Authorization", authHeader)
-            setRequestProperty("X-Website-Token", websiteToken)
-            setRequestProperty("User-Agent", "Mozilla/5.0")
-        }
-        try {
-            val code = conn.responseCode
-            val stream = if (code in 200..299) conn.inputStream else conn.errorStream
-            val body = stream?.bufferedReader()?.use { it.readText() } ?: ""
-            if (code == 404 || code == 410) {
-                throw GofileFileDeletedException("The file on Gofile.io was deleted (HTTP $code).")
+    private fun fetchGofileApi(
+        apiUrl: String,
+        authHeader: String,
+        websiteToken: String,
+        userAgent: String
+    ): ResolvedDownload {
+        for (attempt in 0..1) {
+            val conn = (URL(apiUrl).openConnection() as HttpURLConnection).apply {
+                connectTimeout = 15_000
+                readTimeout = 15_000
+                setRequestProperty("Authorization", authHeader)
+                setRequestProperty("X-Website-Token", websiteToken)
+                setRequestProperty("User-Agent", userAgent)
             }
-            if (code !in 200..299) {
-                throw Exception("Gofile API error (HTTP $code)")
-            }
-            val json = JSONObject(body)
-            val status = json.optString("status")
-            if (status == "error-notFound" || status == "error-notPublic") {
-                throw GofileFileDeletedException("The file on Gofile.io was deleted or is no longer public.")
-            }
-            if (status != "ok") {
-                throw Exception("Gofile returned status: $status")
-            }
-            val children = json.getJSONObject("data").optJSONObject("children")
-                ?: throw GofileFileDeletedException("No files found in Gofile folder.")
-            val keys = children.keys()
-            var bestUrl: String? = null
-            var bestSize = EXPECTED_ZIP_SIZE
-            while (keys.hasNext()) {
-                val child = children.optJSONObject(keys.next()) ?: continue
-                val name = child.optString("name")
-                val link = child.optString("link")
-                if (link.isNotBlank() && (name.equals("5821301.zip", ignoreCase = true) || bestUrl == null)) {
-                    bestUrl = link
-                    val s = child.optLong("size", 0L)
-                    if (s > 0L) bestSize = s
+            try {
+                val code = conn.responseCode
+                if (code == 429) {
+                    if (attempt == 0) {
+                        val retrySec = conn.getHeaderField("Retry-After")?.toLongOrNull()?.coerceIn(1L, 5L) ?: 2L
+                        Thread.sleep(retrySec * 1000L)
+                        continue
+                    }
+                    throw Exception("Gofile.io rate limited (HTTP 429). Please try again shortly or switch Server to Archive.org.")
                 }
+                val stream = if (code in 200..299) conn.inputStream else conn.errorStream
+                val body = stream?.bufferedReader()?.use { it.readText() } ?: ""
+                if (code == 404 || code == 410) {
+                    throw GofileFileDeletedException("The file on Gofile.io was deleted (HTTP $code).")
+                }
+                if (code !in 200..299) {
+                    throw Exception("Gofile API error (HTTP $code)")
+                }
+                val json = JSONObject(body)
+                val status = json.optString("status")
+                if (status == "error-notFound" || status == "error-notPublic") {
+                    throw GofileFileDeletedException("The file on Gofile.io was deleted or is no longer public.")
+                }
+                if (status != "ok") {
+                    throw Exception("Gofile returned status: $status")
+                }
+                val children = json.getJSONObject("data").optJSONObject("children")
+                    ?: throw GofileFileDeletedException("No files found in Gofile folder.")
+                val keys = children.keys()
+                var bestUrl: String? = null
+                var bestSize = EXPECTED_ZIP_SIZE
+                while (keys.hasNext()) {
+                    val child = children.optJSONObject(keys.next()) ?: continue
+                    val name = child.optString("name")
+                    val link = child.optString("link")
+                    if (link.isNotBlank() && (name.equals("5821301.zip", ignoreCase = true) || bestUrl == null)) {
+                        bestUrl = link
+                        val s = child.optLong("size", 0L)
+                        if (s > 0L) bestSize = s
+                    }
+                }
+                if (bestUrl.isNullOrBlank()) {
+                    throw GofileFileDeletedException("5821301.zip was not found in Gofile folder.")
+                }
+                val token = authHeader.removePrefix("Bearer ").trim()
+                return ResolvedDownload(
+                    url = bestUrl,
+                    cookie = if (token.isNotEmpty()) "accountToken=$token" else null,
+                    expectedSize = bestSize
+                )
+            } finally {
+                conn.disconnect()
             }
-            if (bestUrl.isNullOrBlank()) {
-                throw GofileFileDeletedException("5821301.zip was not found in Gofile folder.")
-            }
-            val token = authHeader.removePrefix("Bearer ").trim()
-            return ResolvedDownload(
-                url = bestUrl,
-                cookie = if (token.isNotEmpty()) "accountToken=$token" else null,
-                expectedSize = bestSize
-            )
-        } finally {
-            conn.disconnect()
         }
+        throw Exception("Gofile API error (HTTP 429)")
     }
 
     private suspend fun downloadFileWithResume(
