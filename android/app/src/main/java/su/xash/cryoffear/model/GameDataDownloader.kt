@@ -29,7 +29,8 @@ import javax.crypto.spec.SecretKeySpec
 
 class ServerUnavailableException(
     val failedServer: GameDataDownloader.DownloadServer,
-    message: String
+    message: String,
+    val isBandwidthLimit: Boolean = false
 ) : Exception(message)
 
 class GameDataDownloader(private val ctx: Context) {
@@ -61,6 +62,7 @@ class GameDataDownloader(private val ctx: Context) {
         const val EXPECTED_ZIP_SIZE = 2774149259L
         const val EXPECTED_UNCOMPRESSED_SIZE = 4695601334L
         private const val BUFFER_SIZE = 64 * 1024
+        private const val MEGA_CHUNK_SIZE = 4L * 1024L * 1024L
         private const val PREF_FILE = "game_data_downloader"
         private const val PREF_SERVER = "download_server"
         private const val PREF_FIRST_RUN = "first_run_checked"
@@ -122,7 +124,11 @@ class GameDataDownloader(private val ctx: Context) {
             }
 
             onStatus(ctx.getString(R.string.download_status_downloading, formatBytes(tmpZip.length()), formatBytes(resolved.expectedSize)))
-            downloadFileWithResume(server, resolved, tmpZip, onProgress, onStatus)
+            if (resolved.megaKey != null) {
+                downloadMegaChunked(resolved, tmpZip, onProgress, onStatus)
+            } else {
+                downloadFileWithResume(server, resolved, tmpZip, onProgress, onStatus)
+            }
 
             onStatus(ctx.getString(R.string.download_status_verifying))
             verifyZipArchive(tmpZip)
@@ -227,6 +233,103 @@ class GameDataDownloader(private val ctx: Context) {
         }
     }
 
+    private suspend fun downloadMegaChunked(
+        resolved: ResolvedDownload,
+        outFile: File,
+        onProgress: suspend (Long, Long) -> Unit,
+        onStatus: (String) -> Unit
+    ) {
+        val megaKey = resolved.megaKey ?: return
+        val totalBytes = resolved.expectedSize
+        var existingBytes = if (outFile.isFile) outFile.length() else 0L
+        if (existingBytes > 0L) {
+            existingBytes = (existingBytes / 16L) * 16L
+        }
+        if (existingBytes > totalBytes) {
+            outFile.delete()
+            existingBytes = 0L
+        }
+        if (existingBytes == totalBytes) {
+            onProgress(totalBytes, totalBytes)
+            return
+        }
+
+        val cipher = createMegaCtrCipher(megaKey, existingBytes)
+        var downloaded = existingBytes
+        var lastUiUpdate = 0L
+        onProgress(downloaded, totalBytes)
+        onStatus(ctx.getString(R.string.download_status_downloading, formatBytes(downloaded), formatBytes(totalBytes)))
+
+        RandomAccessFile(outFile, "rw").use { raf ->
+            raf.seek(existingBytes)
+            raf.setLength(existingBytes)
+            val buffer = ByteArray(BUFFER_SIZE)
+
+            while (downloaded < totalBytes) {
+                currentCoroutineContext().ensureActive()
+                val chunkStart = downloaded
+                val chunkEnd = minOf(chunkStart + MEGA_CHUNK_SIZE, totalBytes) - 1L
+                val chunkUrl = "${resolved.url}/$chunkStart-$chunkEnd"
+
+                val conn = (URL(chunkUrl).openConnection() as HttpURLConnection).apply {
+                    connectTimeout = 20_000
+                    readTimeout = 30_000
+                    setRequestProperty("User-Agent", "Mozilla/5.0")
+                }
+                try {
+                    val code = conn.responseCode
+                    if (code == 509) {
+                        throw ServerUnavailableException(
+                            DownloadServer.MEGA,
+                            "${ctx.getString(DownloadServer.MEGA.labelRes)} bandwidth limit exceeded (HTTP 509)",
+                            isBandwidthLimit = true
+                        )
+                    }
+                    if (code == 403 || code == 404 || code == 410 || code == 451) {
+                        throw ServerUnavailableException(
+                            DownloadServer.MEGA,
+                            "${ctx.getString(DownloadServer.MEGA.labelRes)} returned HTTP $code"
+                        )
+                    }
+                    if (code != 200 && code != 206) {
+                        throw Exception("${ctx.getString(DownloadServer.MEGA.labelRes)} returned HTTP $code")
+                    }
+
+                    conn.inputStream.use { input ->
+                        while (true) {
+                            currentCoroutineContext().ensureActive()
+                            val read = input.read(buffer)
+                            if (read == -1) break
+                            val decrypted = cipher.update(buffer, 0, read)
+                            if (decrypted != null && decrypted.isNotEmpty()) {
+                                raf.write(decrypted)
+                            }
+                            downloaded += read
+                            val now = System.currentTimeMillis()
+                            if (now - lastUiUpdate >= 250L || downloaded >= totalBytes) {
+                                lastUiUpdate = now
+                                onProgress(downloaded, totalBytes)
+                                onStatus(
+                                    ctx.getString(
+                                        R.string.download_status_downloading,
+                                        formatBytes(downloaded),
+                                        formatBytes(totalBytes)
+                                    )
+                                )
+                            }
+                        }
+                    }
+                } finally {
+                    conn.disconnect()
+                }
+            }
+            val tail = cipher.doFinal()
+            if (tail != null && tail.isNotEmpty()) {
+                raf.write(tail)
+            }
+        }
+    }
+
     private suspend fun downloadFileWithResume(
         server: DownloadServer,
         resolved: ResolvedDownload,
@@ -274,7 +377,14 @@ class GameDataDownloader(private val ctx: Context) {
 
         try {
             val code = activeConn.responseCode
-            if (code == 403 || code == 404 || code == 410 || code == 451 || code == 509) {
+            if (code == 509) {
+                throw ServerUnavailableException(
+                    server,
+                    "${ctx.getString(server.labelRes)} bandwidth limit exceeded (HTTP 509)",
+                    isBandwidthLimit = true
+                )
+            }
+            if (code == 403 || code == 404 || code == 410 || code == 451) {
                 throw ServerUnavailableException(server, "${ctx.getString(server.labelRes)} returned HTTP $code")
             }
             if (code != 200 && code != 206) {

@@ -102,6 +102,8 @@
 	<string name="download_dialog_message">Server: %1$s\nDownload size: 2.58 GB (4.37 GB extracted)</string>
 	<string name="server_unavailable_title">%1$s file unavailable</string>
 	<string name="server_unavailable_message">The file on %1$s is unavailable or was deleted. Would you like to download Cry of Fear from %2$s instead?</string>
+	<string name="server_bandwidth_title">%1$s bandwidth limit exceeded</string>
+	<string name="server_bandwidth_message">%1$s bandwidth quota has been exceeded for your connection. Would you like to download Cry of Fear from %2$s instead?</string>
 	<string name="download_from_server">Download from %1$s</string>
 	<string name="download_status_resolving_mega">Connecting to Mega.nz…</string>
 	<string name="download_status_downloading">Downloading: %1$s / %2$s</string>

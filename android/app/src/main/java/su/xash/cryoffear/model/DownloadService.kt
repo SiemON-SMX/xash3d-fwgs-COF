@@ -116,15 +116,19 @@ class DownloadService : Service() {
                 } else {
                     val ex = result.exceptionOrNull()
                     val err = ex?.message ?: "Unknown error"
-                    val unavailableServer = (ex as? ServerUnavailableException)?.failedServer
-                    _state.value = DownloadState.Error(err, unavailableServer)
+                    val unavailable = ex as? ServerUnavailableException
+                    _state.value = DownloadState.Error(err, unavailable?.failedServer, unavailable?.isBandwidthLimit == true)
                     showCompletionNotification(false, err)
                 }
             } catch (e: CancellationException) {
                 _state.value = DownloadState.Cancelled
             } catch (e: Exception) {
-                val unavailableServer = (e as? ServerUnavailableException)?.failedServer
-                _state.value = DownloadState.Error(e.message ?: "Unknown error", unavailableServer)
+                val unavailable = e as? ServerUnavailableException
+                _state.value = DownloadState.Error(
+                    e.message ?: "Unknown error",
+                    unavailable?.failedServer,
+                    unavailable?.isBandwidthLimit == true
+                )
                 showCompletionNotification(false, e.message)
             } finally {
                 stopForeground(STOP_FOREGROUND_REMOVE)
@@ -309,7 +313,8 @@ sealed class DownloadState {
     object Success : DownloadState()
     data class Error(
         val message: String,
-        val unavailableServer: GameDataDownloader.DownloadServer? = null
+        val unavailableServer: GameDataDownloader.DownloadServer? = null,
+        val isBandwidthLimit: Boolean = false
     ) : DownloadState()
     object Cancelled : DownloadState()
 }

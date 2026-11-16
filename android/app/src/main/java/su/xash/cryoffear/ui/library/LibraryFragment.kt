@@ -241,9 +241,19 @@ class LibraryFragment : Fragment(), MenuProvider {
 									val altServer = failedServer.alternate()
 									val failedName = getString(failedServer.labelRes)
 									val altName = getString(altServer.labelRes)
+									val titleRes = if (state.isBandwidthLimit) {
+										R.string.server_bandwidth_title
+									} else {
+										R.string.server_unavailable_title
+									}
+									val msgRes = if (state.isBandwidthLimit) {
+										R.string.server_bandwidth_message
+									} else {
+										R.string.server_unavailable_message
+									}
 									MaterialAlertDialogBuilder(requireContext())
-										.setTitle(getString(R.string.server_unavailable_title, failedName))
-										.setMessage(getString(R.string.server_unavailable_message, failedName, altName))
+										.setTitle(getString(titleRes, failedName))
+										.setMessage(getString(msgRes, failedName, altName))
 										.setPositiveButton(getString(R.string.download_from_server, altName)) { _, _ ->
 											DownloadService.resetState()
 											beginCryOfFearDownload(altServer)
