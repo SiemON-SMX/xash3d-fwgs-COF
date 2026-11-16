@@ -85,15 +85,20 @@ class DownloadService : Service() {
                     server = server,
                     basedir = basedir,
                     onProgress = { current, total ->
-                        val pct = if (total > 0) ((current * 100) / total).toInt() else 0
-                        lastProgress = pct
-                        _state.update { state ->
-                            val status = (state as? DownloadState.Downloading)?.status ?: ""
-                            DownloadState.Downloading(current, total, status)
+                        if (downloadJob?.isActive == true && _state.value is DownloadState.Downloading) {
+                            val pct = if (total > 0) ((current * 100) / total).toInt() else 0
+                            lastProgress = pct
+                            _state.update { state ->
+                                if (state is DownloadState.Downloading) {
+                                    DownloadState.Downloading(current, total, state.status)
+                                } else {
+                                    state
+                                }
+                            }
                         }
                     },
                     onStatus = { status ->
-                        if (downloadJob?.isActive == true) {
+                        if (downloadJob?.isActive == true && _state.value is DownloadState.Downloading) {
                             _state.update { state ->
                                 if (state is DownloadState.Downloading) state.copy(status = status) else state
                             }
@@ -134,6 +139,7 @@ class DownloadService : Service() {
         _state.value = DownloadState.Cancelled
         stopForeground(STOP_FOREGROUND_REMOVE)
         nm().cancel(NOTIFICATION_ID)
+        stopSelf()
     }
 
     /**

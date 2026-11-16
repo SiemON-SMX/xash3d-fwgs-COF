@@ -105,6 +105,10 @@ class LibraryFragment : Fragment(), MenuProvider {
 	private fun refreshDownloadAction() {
 		val isDownloading = DownloadService.state.value is DownloadState.Downloading
 		downloadMenuItem?.isEnabled = !isDownloading
+		_binding?.runButton?.apply {
+			isEnabled = !isDownloading
+			alpha = if (isDownloading) 0.5f else 1.0f
+		}
 	}
 
 	private fun checkFirstRunGameData() {
@@ -258,6 +262,7 @@ class LibraryFragment : Fragment(), MenuProvider {
 										.setNeutralButton(R.string.copy) { _, _ ->
 											val clipboard = requireContext().getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
 											clipboard.setPrimaryClip(ClipData.newPlainText("Error", errorMsg))
+											DownloadService.resetState()
 										}
 										.show()
 								}
@@ -266,12 +271,12 @@ class LibraryFragment : Fragment(), MenuProvider {
 						is DownloadState.Cancelled -> {
 							if (lastTerminalState != state) {
 								lastTerminalState = state
-								b.downloaderStatus.text = getString(R.string.download_cancelled)
-								b.downloadProgressContainer.postDelayed({
-									_binding?.downloadProgressContainer?.visibility = View.GONE
-									refreshDownloadAction()
-									DownloadService.resetState()
-								}, 1500)
+								b.downloadProgressContainer.visibility = View.GONE
+								b.downloaderProgress.progress = 0
+								b.downloaderStatus.text = ""
+								refreshDownloadAction()
+								DownloadService.resetState()
+								Toast.makeText(requireContext(), R.string.download_cancelled, Toast.LENGTH_SHORT).show()
 							}
 						}
 					}

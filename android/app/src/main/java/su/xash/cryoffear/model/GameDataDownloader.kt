@@ -7,6 +7,8 @@ import android.util.Log
 import androidx.annotation.StringRes
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import org.json.JSONObject
@@ -301,6 +303,7 @@ class GameDataDownloader(private val ctx: Context) {
                     if (!append) raf.setLength(0L)
                     val buffer = ByteArray(BUFFER_SIZE)
                     while (true) {
+                        currentCoroutineContext().ensureActive()
                         val read = input.read(buffer)
                         if (read == -1) break
                         if (cipher != null) {
@@ -413,6 +416,7 @@ class GameDataDownloader(private val ctx: Context) {
                 zip.getInputStream(entry).use { input ->
                     FileOutputStream(outFile).use { output ->
                         while (true) {
+                            currentCoroutineContext().ensureActive()
                             val read = input.read(buffer)
                             if (read == -1) break
                             output.write(buffer, 0, read)
