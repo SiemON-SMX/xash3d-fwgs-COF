@@ -22,7 +22,6 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import su.xash.cryoffear.R
@@ -136,68 +135,52 @@ class LibraryFragment : Fragment(), MenuProvider {
 	private fun startCryOfFearDownload() {
 		if (DownloadService.state.value is DownloadState.Downloading) return
 		val ctx = requireContext()
-		val gamedir = "CryofFear"
-		val info = GameDataDownloader.GAMES[gamedir] ?: return
+		val downloader = GameDataDownloader(ctx)
+		val selectedServer = downloader.getSelectedServer()
 		val existingGameDir = Prefs.findGameDir(ctx)
 
 		if (existingGameDir != null) {
 			MaterialAlertDialogBuilder(ctx)
 				.setTitle(R.string.overwrite_confirm_title)
-				.setMessage(getString(R.string.overwrite_confirm_message, info.displayName))
-				.setPositiveButton(R.string.overwrite) { _, _ -> beginCryOfFearDownload(gamedir) }
-				.setNeutralButton(R.string.server) { _, _ -> showSteamCmServerDialog { startCryOfFearDownload() } }
+				.setMessage(getString(R.string.overwrite_confirm_message, "Cry of Fear"))
+				.setPositiveButton(R.string.overwrite) { _, _ -> beginCryOfFearDownload(selectedServer) }
+				.setNeutralButton(R.string.server) { _, _ -> showDownloadServerDialog { startCryOfFearDownload() } }
 				.setNegativeButton(R.string.keep, null)
 				.show()
 		} else {
 			MaterialAlertDialogBuilder(ctx)
 				.setTitle(R.string.install_cryoffear_title)
-				.setPositiveButton(android.R.string.yes) { _, _ -> beginCryOfFearDownload(gamedir) }
-				.setNeutralButton(R.string.server) { _, _ -> showSteamCmServerDialog { startCryOfFearDownload() } }
+				.setMessage("Server: ${selectedServer.label}\nDownload size: 2.58 GB (4.37 GB extracted)")
+				.setPositiveButton(android.R.string.yes) { _, _ -> beginCryOfFearDownload(selectedServer) }
+				.setNeutralButton(R.string.server) { _, _ -> showDownloadServerDialog { startCryOfFearDownload() } }
 				.setNegativeButton(android.R.string.no, null)
 				.show()
 		}
 	}
 
-	private fun showSteamCmServerDialog(onDone: () -> Unit) {
+	private fun showDownloadServerDialog(onDone: () -> Unit) {
 		val ctx = requireContext()
 		val downloader = GameDataDownloader(ctx)
-		Toast.makeText(ctx, R.string.steam_cm_loading, Toast.LENGTH_SHORT).show()
-		viewLifecycleOwner.lifecycleScope.launch {
-			try {
-				val choices = downloader.getCMServerChoices()
-				if (!isAdded) return@launch
-				val titles = choices.map { it.title }.toTypedArray()
-				val checkedIndex = choices.indexOfFirst { it.isSelected }.coerceAtLeast(0)
-				MaterialAlertDialogBuilder(requireContext())
-					.setTitle(R.string.steam_cm_dialog_title)
-					.setSingleChoiceItems(titles, checkedIndex) { dialog, index ->
-						val chosen = choices[index]
-						downloader.setPreferredCMServer(chosen)
-						Toast.makeText(
-							requireContext(),
-							if (chosen.isDefault) R.string.steam_cm_default_selected else R.string.steam_cm_server_selected,
-							Toast.LENGTH_SHORT
-						).show()
-						dialog.dismiss()
-						onDone()
-					}
-					.setNegativeButton(android.R.string.cancel) { _, _ -> onDone() }
-					.show()
-			} catch (e: CancellationException) {
-				throw e
-			} catch (_: Exception) {
-				if (isAdded) {
-					Toast.makeText(requireContext(), R.string.steam_cm_list_failed, Toast.LENGTH_LONG).show()
-					onDone()
-				}
+		val servers = GameDataDownloader.DownloadServer.entries
+		val titles = servers.map { it.label }.toTypedArray()
+		val checkedIndex = servers.indexOf(downloader.getSelectedServer()).coerceAtLeast(0)
+
+		MaterialAlertDialogBuilder(ctx)
+			.setTitle(R.string.download_server_dialog_title)
+			.setSingleChoiceItems(titles, checkedIndex) { dialog, index ->
+				val chosen = servers[index]
+				downloader.setSelectedServer(chosen)
+				Toast.makeText(ctx, chosen.label, Toast.LENGTH_SHORT).show()
+				dialog.dismiss()
+				onDone()
 			}
-		}
+			.setNegativeButton(android.R.string.cancel) { _, _ -> onDone() }
+			.show()
 	}
 
-	private fun beginCryOfFearDownload(gamedir: String) {
-		val info = GameDataDownloader.GAMES[gamedir] ?: return
+	private fun beginCryOfFearDownload(server: GameDataDownloader.DownloadServer) {
 		val basedir = Prefs.getGamePath(requireContext())
-		DownloadService.start(requireContext(), gamedir, basedir, info.depotIds)
+		DownloadService.start(requireContext(), basedir, server)
 	}
 
 	private fun cancelCryOfFearDownload() {
@@ -249,17 +232,31 @@ class LibraryFragment : Fragment(), MenuProvider {
 								b.downloadProgressContainer.visibility = View.GONE
 								refreshDownloadAction()
 								val errorMsg = state.message
-								MaterialAlertDialogBuilder(requireContext())
-									.setTitle(R.string.download_failed)
-									.setMessage(errorMsg)
-									.setPositiveButton(android.R.string.ok) { _, _ ->
-										DownloadService.resetState()
-									}
-									.setNeutralButton("Copy") { _, _ ->
-										val clipboard = requireContext().getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-										clipboard.setPrimaryClip(ClipData.newPlainText("Error", errorMsg))
-									}
-									.show()
+								if (state.isGofileDeleted) {
+									MaterialAlertDialogBuilder(requireContext())
+										.setTitle(R.string.gofile_deleted_title)
+										.setMessage(R.string.gofile_deleted_message)
+										.setPositiveButton(R.string.download_from_archive) { _, _ ->
+											DownloadService.resetState()
+											beginCryOfFearDownload(GameDataDownloader.DownloadServer.ARCHIVE_ORG)
+										}
+										.setNegativeButton(android.R.string.cancel) { _, _ ->
+											DownloadService.resetState()
+										}
+										.show()
+								} else {
+									MaterialAlertDialogBuilder(requireContext())
+										.setTitle(R.string.download_failed)
+										.setMessage(errorMsg)
+										.setPositiveButton(android.R.string.ok) { _, _ ->
+											DownloadService.resetState()
+										}
+										.setNeutralButton("Copy") { _, _ ->
+											val clipboard = requireContext().getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+											clipboard.setPrimaryClip(ClipData.newPlainText("Error", errorMsg))
+										}
+										.show()
+								}
 							}
 						}
 						is DownloadState.Cancelled -> {

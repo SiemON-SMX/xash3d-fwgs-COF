@@ -59,15 +59,15 @@ fi
 ./waf.bat install --destdir="$BUILDDIR" || die
 popd || die
 
-if [ -d "valve" ] && [ ! -d "CryofFear" ]; then
-	mv valve CryofFear
+if [ -d "valve" ] && [ ! -d "cryoffear" ]; then
+	mv valve cryoffear
 elif [ -d "valve" ]; then
-	mkdir -p CryofFear
-	cp -r valve/* CryofFear/
+	mkdir -p cryoffear
+	cp -r valve/* cryoffear/
 	rm -rf valve
 fi
 
 mkdir -p artifacts/
 7z a -t7z "artifacts/cry-of-fear-win32-$ARCH.7z" -m0=lzma2 -mx=9 -mfb=64 -md=32m -ms=on \
 	./*.dll ./*.exe ./*.pdb activities.txt \
-	CryofFear/
+	cryoffear/

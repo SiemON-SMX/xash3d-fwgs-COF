@@ -43,10 +43,11 @@ class DownloadService : Service() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         when (intent?.action) {
             ACTION_START -> {
-                val gamedir = intent.getStringExtra(EXTRA_GAMEDIR) ?: return START_NOT_STICKY
                 val targetPath = intent.getStringExtra(EXTRA_TARGET) ?: return START_NOT_STICKY
-                val depotIds = intent.getIntegerArrayListExtra(EXTRA_DEPOT_IDS)?.filterNotNull()
-                startDownload(gamedir, File(targetPath), depotIds)
+                val serverId = intent.getStringExtra(EXTRA_SERVER)
+                val server = GameDataDownloader.DownloadServer.entries.firstOrNull { it.id == serverId }
+                    ?: GameDataDownloader.DownloadServer.GOFILE
+                startDownload(File(targetPath), server)
             }
             ACTION_CANCEL -> cancelDownload()
             ACTION_STOP -> stopSelf()
@@ -61,21 +62,24 @@ class DownloadService : Service() {
         super.onDestroy()
     }
 
-    private fun startDownload(gamedir: String, targetDir: File, depotIds: List<Int>?) {
+    private fun startDownload(basedir: File, server: GameDataDownloader.DownloadServer) {
         if (downloadJob?.isActive == true) return
-        completedGamedir = gamedir
-        displayName = GameDataDownloader.GAMES[gamedir]?.displayName ?: gamedir
-        downloadTargetDir = targetDir
+        completedGamedir = "cryoffear"
+        displayName = "Cry of Fear"
+        downloadTargetDir = basedir
         _state.value = DownloadState.Downloading(0, 0, "Starting...")
         downloadJob = scope.launch {
             try {
                 val result = downloader.downloadGame(
-                    gamedir, targetDir,
+                    server = server,
+                    basedir = basedir,
                     onProgress = { current, total ->
                         val pct = if (total > 0) ((current * 100) / total).toInt() else 0
                         lastProgress = pct
-                        _state.value = DownloadState.Downloading(current, total, "$current / $total files")
-                        updateNotification(pct, "$current / $total files")
+                        _state.update { state ->
+                            val status = (state as? DownloadState.Downloading)?.status ?: ""
+                            DownloadState.Downloading(current, total, status)
+                        }
                     },
                     onStatus = { status ->
                         if (downloadJob?.isActive == true) {
@@ -84,28 +88,27 @@ class DownloadService : Service() {
                             }
                             updateNotification(lastProgress, status)
                         }
-                    },
-                    depotIds = depotIds
+                    }
                 )
 
                 if (result.isSuccess) {
-                    val purged = purgeForeignBinaries(targetDir)
-                    android.util.Log.i(TAG, "Purged $purged foreign binaries from $gamedir")
-                    lastCompletedGamedir = gamedir
+                    val purged = purgeForeignBinaries(File(basedir, "cryoffear"))
+                    android.util.Log.i(TAG, "Purged $purged foreign binaries from cryoffear")
+                    lastCompletedGamedir = "cryoffear"
                     _state.value = DownloadState.Success
                     showCompletionNotification(true, null)
                 } else {
-                    val err = result.exceptionOrNull()?.message ?: "Unknown error"
-                    _state.value = DownloadState.Error(err)
+                    val ex = result.exceptionOrNull()
+                    val err = ex?.message ?: "Unknown error"
+                    _state.value = DownloadState.Error(err, ex is GofileFileDeletedException)
                     showCompletionNotification(false, err)
                 }
             } catch (e: CancellationException) {
                 _state.value = DownloadState.Cancelled
             } catch (e: Exception) {
-                _state.value = DownloadState.Error(e.message ?: "Unknown error")
+                _state.value = DownloadState.Error(e.message ?: "Unknown error", e is GofileFileDeletedException)
                 showCompletionNotification(false, e.message)
             } finally {
-                cleanupTmpFiles()
                 stopForeground(STOP_FOREGROUND_REMOVE)
                 stopSelf()
             }
@@ -115,22 +118,9 @@ class DownloadService : Service() {
     private fun cancelDownload() {
         downloadJob?.cancel()
         downloadJob = null
-        cleanupTmpFiles()
         _state.value = DownloadState.Cancelled
-        // The job's finally() also tears down, but a worker stuck in a
-        // blocking read may delay it: drop the progress notification right
-        // now so Cancel feels instant even if the thread lingers.
         stopForeground(STOP_FOREGROUND_REMOVE)
         nm().cancel(NOTIFICATION_ID)
-    }
-
-    private fun cleanupTmpFiles() {
-        val dir = downloadTargetDir ?: return
-        dir.walkTopDown().forEach { file ->
-            if (file.isFile && file.name.endsWith(".tmp")) {
-                file.delete()
-            }
-        }
     }
 
     /**
@@ -243,9 +233,8 @@ class DownloadService : Service() {
         const val ACTION_START = "su.xash.cryoffear.action.START_DOWNLOAD"
         const val ACTION_CANCEL = "su.xash.cryoffear.action.CANCEL_DOWNLOAD"
         const val ACTION_STOP = "su.xash.cryoffear.action.STOP_DOWNLOAD"
-        const val EXTRA_GAMEDIR = "gamedir"
         const val EXTRA_TARGET = "target"
-        const val EXTRA_DEPOT_IDS = "depot_ids"
+        const val EXTRA_SERVER = "server"
 
         private val _state = MutableStateFlow<DownloadState>(DownloadState.Idle)
         val state: StateFlow<DownloadState> = _state.asStateFlow()
@@ -266,18 +255,15 @@ class DownloadService : Service() {
             lastCompletedGamedir = null
         }
 
-        fun start(context: Context, gamedir: String, targetDir: File, depotIds: List<Int>?) {
+        fun start(context: Context, targetDir: File, server: GameDataDownloader.DownloadServer) {
             val current = _state.value
             if (current is DownloadState.Downloading) return
             val starting = DownloadState.Downloading(0, 0, "Starting...")
             if (!_state.compareAndSet(current, starting)) return
             val intent = Intent(context, DownloadService::class.java).apply {
                 action = ACTION_START
-                putExtra(EXTRA_GAMEDIR, gamedir)
                 putExtra(EXTRA_TARGET, targetDir.absolutePath)
-                if (depotIds != null) {
-                    putIntegerArrayListExtra(EXTRA_DEPOT_IDS, ArrayList(depotIds))
-                }
+                putExtra(EXTRA_SERVER, server.id)
             }
             try {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -302,6 +288,6 @@ sealed class DownloadState {
     object Idle : DownloadState()
     data class Downloading(val current: Long, val total: Long, val status: String) : DownloadState()
     object Success : DownloadState()
-    data class Error(val message: String) : DownloadState()
+    data class Error(val message: String, val isGofileDeleted: Boolean = false) : DownloadState()
     object Cancelled : DownloadState()
 }

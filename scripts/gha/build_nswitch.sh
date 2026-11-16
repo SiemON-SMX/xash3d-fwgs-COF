@@ -6,7 +6,7 @@ cd "$BUILDDIR" || die
 
 rm -rf artifacts build pkgtemp
 
-mkdir -p pkgtemp/xash3d/CryofFear/{dlls,cl_dlls} || die
+mkdir -p pkgtemp/xash3d/cryoffear/{dlls,cl_dlls} || die
 mkdir -p artifacts/ || die
 
 echo "Running build script in Docker container..."

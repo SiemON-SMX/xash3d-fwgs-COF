@@ -15,8 +15,8 @@ cmake --build build --target install || die
 popd || die
 
 if [ -d "build/ios/libs/valve" ]; then
-	mkdir -p build/ios/libs/CryofFear
-	cp -r build/ios/libs/valve/* build/ios/libs/CryofFear/
+	mkdir -p build/ios/libs/cryoffear
+	cp -r build/ios/libs/valve/* build/ios/libs/cryoffear/
 	rm -rf build/ios/libs/valve
 fi
 

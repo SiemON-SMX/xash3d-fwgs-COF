@@ -15,7 +15,7 @@ extensions.configure<ApplicationExtension> {
 
 	defaultConfig {
 		applicationId = "su.xash.cryoffear"
-		versionName = "0.21-" + getGitHash()
+		versionName = "1.6a-" + getGitHash()
 		versionCode = getBuildNum()
 		minSdk = 21
 		targetSdk = 35
@@ -137,7 +137,6 @@ dependencies {
 	implementation(libs.swiperefreshlayout)
 
 	implementation(libs.acra.http)
-	implementation(libs.xz)
 }
 
 fun getBuildNum(): Int {

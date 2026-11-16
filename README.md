@@ -11,7 +11,7 @@ A modified fork of Xash3D FWGS for Cry of Fear reverse-engineered. Adds the engi
 ## Installation & Running
 0) Get Cry of Fear binaries: you can use [testing](https://github.com/SiemON-SMX/xash3d-fwgs-COF/releases/tag/continuous) build or you can compile engine from source code.
 1) Copy engine binaries to some directory. (Don't worry, all binaries are prebuilt)
-2) Copy `CryofFear` directory from [Cry of Fear](https://store.steampowered.com/app/223710/Cry_of_Fear/) to directory with engine binaries.
+2) Copy `cryoffear` directory from [Cry of Fear](https://store.steampowered.com/app/223710/Cry_of_Fear/) to directory with engine binaries.
 3) Run the main executable (`xash3d.exe` or AppImage).
 
 For additional info, run Xash3D with `-help` command line key.

@@ -52,13 +52,13 @@ echo "Building engine..."
 echo "Building HLSDK..."
 
 pushd hlsdk-portable || die
-build_hlsdk CryOfFear CryofFear
+build_hlsdk CryOfFear cryoffear
 popd || die
 
 pushd pkgtemp/xash3d || die
 if [ -d "valve" ]; then
-	mkdir -p CryofFear
-	cp -r valve/* CryofFear/
+	mkdir -p cryoffear
+	cp -r valve/* cryoffear/
 	rm -rf valve
 fi
 popd || die
