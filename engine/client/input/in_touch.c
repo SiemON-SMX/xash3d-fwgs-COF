@@ -1209,12 +1209,12 @@ void Touch_Init( void )
 	Touch_AddDefaultButton( "jump", "touch_default/jump", "+jump", 0.880000, 0.227228, 1.000000, 0.454457, color, 2, 1, 0 );
 	Touch_AddDefaultButton( "attack", "touch_default/shoot", "+attack", 0.760000, 0.530200, 0.880000, 0.757428, color, 2, 1, 0 );
 	Touch_AddDefaultButton( "attack2", "touch_default/shoot_alt", "+attack2", 0.760000, 0.302971, 0.880000, 0.530200, color, 2, 1, 0 );
-	Touch_AddDefaultButton( "attack3", "touch_default/shoot_alt", "+attack3", 0.640000, 0.302971, 0.760000, 0.530200, color, 2, 1, 0 );
+	Touch_AddDefaultButton( "attack3", "touch_default/attack3", "+attack3", 0.640000, 0.302971, 0.760000, 0.530200, color, 2, 1, 0 );
 	Touch_AddDefaultButton( "messagemode", "touch_default/keyboard", "messagemode", 0.840000, 0.000000, 0.920000, 0.142222, color, 2, 1, 8 );
 	Touch_AddDefaultButton( "reload", "touch_default/reload", "+reload", 0.000000, 0.302971, 0.120000, 0.530200, color, 2, 1, 0 );
 	Touch_AddDefaultButton( "flashlight", "touch_default/flash_light_filled", "impulse 100", 0.920000, 0.000000, 1.000000, 0.151486, color, 2, 1, 0 );
 	Touch_AddDefaultButton( "scores", "touch_default/map", "+showscores", 0.760000, 0.000000, 0.840000, 0.142222, color, 2, 1, 8 );
-	Touch_AddDefaultButton( "inventory", "touch_default/map", "+inventory", 0.600000, 0.000000, 0.680000, 0.142222, color, 2, 1, 0 );
+	Touch_AddDefaultButton( "inventory", "touch_default/inventory", "+inventory", 0.600000, 0.000000, 0.680000, 0.142222, color, 2, 1, 0 );
 	Touch_AddDefaultButton( "show_numbers", "touch_default/show_weapons", "exec touch_default/numbers.cfg", 0.440000, 0.833171, 0.520000, 0.984656, color, 2, 1, 0 );
 	Touch_AddDefaultButton( "duck", "touch_default/crouch", "+duck", 0.880000, 0.757428, 1.000000, 0.984656, color, 2, 1, 0 );
 	Touch_AddDefaultButton( "tduck", "touch_default/tduck", ";+duck", 0.560000, 0.833171, 0.620000, 0.946785, color, 2, 1, 0 );
@@ -1298,15 +1298,26 @@ static void Touch_InitConfig( void )
 		Cbuf_AddTextf( "exec \"%s\"\n", touch_config_file.string );
 		Cbuf_Execute();
 
-		// old saved configs don't have the new cof buttons
+		// old saved configs don't have the new cof buttons or their icons
 		for( int i = 0; i < g_DefaultButtonsLength; i++ )
 		{
-			if( Q_strcmp( g_DefaultButtons[i].name, "weapontoggle" ) && Q_strcmp( g_DefaultButtons[i].name, "sprint" ))
+			touch_button_t *b;
+
+			if( Q_strcmp( g_DefaultButtons[i].name, "weapontoggle" ) && Q_strcmp( g_DefaultButtons[i].name, "sprint" )
+				&& Q_strcmp( g_DefaultButtons[i].name, "inventory" ) && Q_strcmp( g_DefaultButtons[i].name, "attack3" ))
 				continue;
 
-			if( !Touch_FindButtonNoPattern( &touch.list_user, g_DefaultButtons[i].name, true ))
+			b = Touch_FindButtonNoPattern( &touch.list_user, g_DefaultButtons[i].name, true );
+
+			if( !b )
 			{
 				Touch_AddDefaultButtonIndex( i );
+				addednew = true;
+			}
+			else if( Q_strcmp( b->texture, g_DefaultButtons[i].texture ))
+			{
+				Q_strncpy( b->texture, g_DefaultButtons[i].texture, sizeof( b->texture ));
+				b->gl_texturenum = -1;
 				addednew = true;
 			}
 		}
