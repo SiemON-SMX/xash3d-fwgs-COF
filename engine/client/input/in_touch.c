@@ -962,32 +962,36 @@ void Touch_AddClientButton( const char *name, const char *texture, const char *c
 	button->aspect = aspect;
 }
 
+static void Touch_AddDefaultButtonIndex( int i )
+{
+	touch_button_t *button;
+	float x1 = g_DefaultButtons[i].x1,
+		  y1 = g_DefaultButtons[i].y1,
+		  x2 = g_DefaultButtons[i].x2,
+		  y2 = g_DefaultButtons[i].y2;
+
+	IN_TouchCheckCoords( &x1, &y1, &x2, &y2 );
+
+	if( g_DefaultButtons[i].aspect && g_DefaultButtons[i].round == round_aspect )
+	{
+		if( g_DefaultButtons[i].texture[0] == '#' )
+			y2 = y1 + ( (float)clgame.scrInfo.iCharHeight / (float)clgame.scrInfo.iHeight ) * g_DefaultButtons[i].aspect + touch.swidth * 2.0f / refState.height;
+		else
+			y2 = y1 + (( x2 - x1 ) / Touch_AspectRatio()) * g_DefaultButtons[i].aspect;
+	}
+
+	IN_TouchCheckCoords( &x1, &y1, &x2, &y2 );
+
+	button = Touch_AddButton( &touch.list_user, g_DefaultButtons[i].name, g_DefaultButtons[i].texture, g_DefaultButtons[i].command, x1, y1, x2, y2, g_DefaultButtons[i].color, true );
+	SetBits( button->flags, g_DefaultButtons[i].flags );
+	button->aspect = g_DefaultButtons[i].aspect;
+}
+
 static void Touch_LoadDefaults_f( void )
 {
 	for( int i = 0; i < g_DefaultButtonsLength; i++ )
-	{
-		touch_button_t *button;
-		float x1 = g_DefaultButtons[i].x1,
-			  y1 = g_DefaultButtons[i].y1,
-			  x2 = g_DefaultButtons[i].x2,
-			  y2 = g_DefaultButtons[i].y2;
+		Touch_AddDefaultButtonIndex( i );
 
-		IN_TouchCheckCoords( &x1, &y1, &x2, &y2 );
-
-		if( g_DefaultButtons[i].aspect && g_DefaultButtons[i].round == round_aspect )
-		{
-			if( g_DefaultButtons[i].texture[0] == '#' )
-				y2 = y1 + ( (float)clgame.scrInfo.iCharHeight / (float)clgame.scrInfo.iHeight ) * g_DefaultButtons[i].aspect + touch.swidth * 2.0f / refState.height;
-			else
-				y2 = y1 + (( x2 - x1 ) / Touch_AspectRatio()) * g_DefaultButtons[i].aspect;
-		}
-
-		IN_TouchCheckCoords( &x1, &y1, &x2, &y2 );
-
-		button = Touch_AddButton( &touch.list_user, g_DefaultButtons[i].name, g_DefaultButtons[i].texture, g_DefaultButtons[i].command, x1, y1, x2, y2, g_DefaultButtons[i].color, true );
-		SetBits( button->flags, g_DefaultButtons[i].flags );
-		button->aspect = g_DefaultButtons[i].aspect;
-	}
 	touch.configchanged = true;
 }
 
@@ -1282,6 +1286,8 @@ void Touch_Init( void )
 //int pfnGetScreenInfo( SCREENINFO *pscrinfo );
 static void Touch_InitConfig( void )
 {
+	qboolean addednew = false;
+
 	if( !touch.initialized || !host.config_executed || touch.config_loaded )
 		return;
 
@@ -1291,13 +1297,26 @@ static void Touch_InitConfig( void )
 	{
 		Cbuf_AddTextf( "exec \"%s\"\n", touch_config_file.string );
 		Cbuf_Execute();
+
+		// old saved configs don't have the new cof buttons
+		for( int i = 0; i < g_DefaultButtonsLength; i++ )
+		{
+			if( Q_strcmp( g_DefaultButtons[i].name, "weapontoggle" ) && Q_strcmp( g_DefaultButtons[i].name, "sprint" ))
+				continue;
+
+			if( !Touch_FindButtonNoPattern( &touch.list_user, g_DefaultButtons[i].name, true ))
+			{
+				Touch_AddDefaultButtonIndex( i );
+				addednew = true;
+			}
+		}
 	}
 	else Touch_LoadDefaults_f();
 
 	Touch_InitEditor();
 	touch.joytexture = ref.dllFuncs.GL_LoadTexture( touch_joy_texture.string, NULL, 0, TF_NOMIPMAP );
 	touch.whitetexture = R_GetBuiltinTexture( REF_WHITE_TEXTURE );
-	touch.configchanged = false;
+	touch.configchanged = addednew;
 	touch.config_loaded = true;
 }
 
