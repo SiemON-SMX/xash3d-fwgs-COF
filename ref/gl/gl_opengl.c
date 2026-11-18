@@ -1400,10 +1400,6 @@ void R_Shutdown( void )
 
 	Mem_FreePool( &r_temppool );
 
-#if XASH_GL4ES
-	close_gl4es();
-#endif // XASH_GL4ES
-
 #if XASH_PS4
 	GNM_ShimShutdown();
 #endif
