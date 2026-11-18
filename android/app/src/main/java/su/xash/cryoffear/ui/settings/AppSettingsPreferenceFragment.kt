@@ -39,10 +39,7 @@ class AppSettingsPreferenceFragment : PreferenceFragmentCompat(),
 
 		findPreference<Preference>("game_path")?.apply {
 			summary = Prefs.getGamePath(requireContext()).absolutePath
-			setOnPreferenceClickListener {
-				openGameDataFolder()
-				true
-			}
+			isSelectable = false
 		}
 
 		argumentsPreference = findPreference<Preference>("arguments")?.apply {

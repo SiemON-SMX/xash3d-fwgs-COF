@@ -307,10 +307,6 @@ public class XashActivity extends SDLActivity {
 			argv = combineArguments(argv, "-stretch_resolution");
 		}
 
-		if (prefs.getBoolean("fix_font", true) && !hasArgument(argv, "-fixfont")) {
-			argv = combineArguments(argv, "-fixfont");
-		}
-
 		String resolutionArgs = getRenderResolutionArguments(argv);
 		if (!resolutionArgs.isEmpty()) {
 			argv = combineArguments(argv, resolutionArgs);

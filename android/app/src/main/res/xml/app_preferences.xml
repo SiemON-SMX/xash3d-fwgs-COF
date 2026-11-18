@@ -39,13 +39,6 @@
 
 		<SwitchPreferenceCompat
 			app:defaultValue="true"
-			app:icon="@drawable/ic_outline_text_fields_24"
-			app:key="fix_font"
-			app:summary="@string/fix_font_summary"
-			app:title="@string/fix_font" />
-
-		<SwitchPreferenceCompat
-			app:defaultValue="true"
 			app:icon="@drawable/ic_outline_keyboard_24"
 			app:key="keyboard_pans_screen"
 			app:summary="@string/keyboard_pans_screen_summary"
