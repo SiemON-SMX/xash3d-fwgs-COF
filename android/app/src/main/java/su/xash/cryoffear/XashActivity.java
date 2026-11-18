@@ -303,6 +303,10 @@ public class XashActivity extends SDLActivity {
 		if (argv == null) argv = "";
 		argv = argv.trim();
 
+		if (!hasArgument(argv, "-ref")) {
+			argv = combineArguments(argv, "-ref gl4es");
+		}
+
 		if (prefs.getBoolean("stretch_resolution", false) && !hasArgument(argv, "-stretch_resolution")) {
 			argv = combineArguments(argv, "-stretch_resolution");
 		}
