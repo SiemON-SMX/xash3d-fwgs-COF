@@ -22,7 +22,7 @@ export JAVA_HOME=$GITHUB_WORKSPACE/java
 export PATH=$PATH:$JAVA_HOME/bin
 
 # pinned so a push to hlsdk-portable doesn't change builds by itself, bump this when you update it
-HLSDK_COMMIT="d6239fa1c77c"
+HLSDK_COMMIT="fbe7c36"
 
 echo "Download hlsdk-portable"
 git clone --recursive https://github.com/SiemON-SMX/hlsdk-portable -b CryOfFear 3rdparty/hlsdk-portable || exit 1
