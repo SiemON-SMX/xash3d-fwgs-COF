@@ -34,7 +34,7 @@ public class GameDocumentsProvider extends DocumentsProvider {
     }
 
     private File rootDirectory() throws FileNotFoundException {
-        File root = getContext().getExternalFilesDir(null);
+        File root = Prefs.getGamePath(getContext());
         if (root == null) throw new FileNotFoundException("Game storage is unavailable");
         try {
             return root.getCanonicalFile();

@@ -9,13 +9,45 @@ object Prefs {
 	const val GAME_DIR = "cryoffear"
 	const val DEFAULT_ARGUMENTS = "-console -log"
 
-	// Game data lives in the app's own folder, Android/data/<package>/files
 	@JvmStatic
-	fun getGamePath(context: Context): File =
-		context.getExternalFilesDir(null) ?: File(
-			Environment.getExternalStorageDirectory(),
-			"Android/data/${context.packageName}/files"
-		)
+	fun getAvailableGamePaths(context: Context): List<File> {
+		val dirs = context.getExternalFilesDirs(null)
+			?.filterNotNull()
+			?.filter {
+				val state = Environment.getExternalStorageState(it)
+				state == Environment.MEDIA_MOUNTED || state == Environment.MEDIA_MOUNTED_READ_ONLY
+			}
+			?.distinctBy { it.absolutePath }
+			?: emptyList()
+		return dirs.ifEmpty {
+			listOf(
+				context.getExternalFilesDir(null) ?: File(
+					Environment.getExternalStorageDirectory(),
+					"Android/data/${context.packageName}/files"
+				)
+			)
+		}
+	}
+
+	@JvmStatic
+	fun getGamePath(context: Context): File {
+		val prefs = context.getSharedPreferences(APP_PREFERENCES, Context.MODE_PRIVATE)
+		val saved = prefs.getString("game_path", null)
+		val available = getAvailableGamePaths(context)
+		if (!saved.isNullOrBlank()) {
+			val match = available.firstOrNull { it.absolutePath == saved }
+			if (match != null) return match
+		}
+		return available.first()
+	}
+
+	@JvmStatic
+	fun setGamePath(context: Context, dir: File) {
+		context.getSharedPreferences(APP_PREFERENCES, Context.MODE_PRIVATE)
+			.edit()
+			.putString("game_path", dir.absolutePath)
+			.apply()
+	}
 
 	// The folder name may differ in case from GAME_DIR
 	@JvmStatic

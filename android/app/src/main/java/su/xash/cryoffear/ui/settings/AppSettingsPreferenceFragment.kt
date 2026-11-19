@@ -4,7 +4,9 @@ import android.content.ActivityNotFoundException
 import android.content.ClipData
 import android.content.Intent
 import android.content.SharedPreferences
+import android.os.Build
 import android.os.Bundle
+import android.os.storage.StorageManager
 import android.provider.DocumentsContract
 import android.widget.EditText
 import android.widget.LinearLayout
@@ -22,6 +24,7 @@ import kotlinx.coroutines.withContext
 import su.xash.cryoffear.BuildConfig
 import su.xash.cryoffear.MainActivity
 import su.xash.cryoffear.R
+import su.xash.cryoffear.util.Nomedia
 import su.xash.cryoffear.util.Prefs
 import java.io.File
 import java.io.FileNotFoundException
@@ -37,9 +40,13 @@ class AppSettingsPreferenceFragment : PreferenceFragmentCompat(),
 		setPreferencesFromResource(R.xml.app_preferences, rootKey)
 		preferences = preferenceManager.sharedPreferences!!
 
-		findPreference<Preference>("game_path")?.apply {
-			summary = Prefs.getGamePath(requireContext()).absolutePath
-			isSelectable = false
+		findPreference<GamePathPreference>("game_path")?.apply {
+			updateGamePathPreference(this)
+			onChangeClickListener = { showStorageLocationDialog(this) }
+			setOnPreferenceClickListener {
+				openGameDataFolder()
+				true
+			}
 		}
 
 		argumentsPreference = findPreference<Preference>("arguments")?.apply {
@@ -80,6 +87,50 @@ class AppSettingsPreferenceFragment : PreferenceFragmentCompat(),
 		updateRenderResolutionSummary()
 	}
 
+	private fun updateGamePathPreference(preference: GamePathPreference) {
+		val ctx = requireContext()
+		preference.summary = Prefs.getGamePath(ctx).absolutePath
+		preference.isChangeEnabled = Prefs.getAvailableGamePaths(ctx).size > 1
+	}
+
+	private fun getVolumeLabel(dir: File, index: Int): String {
+		val ctx = requireContext()
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+			val sm = ctx.getSystemService(StorageManager::class.java)
+			val desc = sm?.getStorageVolume(dir)?.getDescription(ctx)
+			if (!desc.isNullOrBlank()) return desc
+		}
+		return if (index == 0) getString(R.string.internal_storage) else getString(R.string.external_storage)
+	}
+
+	private fun showStorageLocationDialog(preference: GamePathPreference) {
+		val ctx = requireContext()
+		val paths = Prefs.getAvailableGamePaths(ctx)
+		if (paths.size <= 1) {
+			Toast.makeText(ctx, R.string.no_external_storage_found, Toast.LENGTH_SHORT).show()
+			return
+		}
+		val current = Prefs.getGamePath(ctx).absolutePath
+		val labels = paths.mapIndexed { index, dir ->
+			"${getVolumeLabel(dir, index)}\n${dir.absolutePath}"
+		}.toTypedArray()
+		val checkedIndex = paths.indexOfFirst { it.absolutePath == current }.coerceAtLeast(0)
+
+		MaterialAlertDialogBuilder(ctx)
+			.setTitle(R.string.select_storage_location)
+			.setSingleChoiceItems(labels, checkedIndex) { dialog, index ->
+				val chosen = paths[index]
+				Prefs.setGamePath(ctx, chosen)
+				updateGamePathPreference(preference)
+				lifecycleScope.launch(Dispatchers.IO) {
+					Nomedia.ensureNomedia(chosen)
+				}
+				dialog.dismiss()
+			}
+			.setNegativeButton(android.R.string.cancel, null)
+			.show()
+	}
+
 	private fun openGameDataFolder() {
 		val ctx = requireContext()
 		Prefs.getGamePath(ctx).mkdirs()
@@ -110,6 +161,7 @@ class AppSettingsPreferenceFragment : PreferenceFragmentCompat(),
 	override fun onResume() {
 		super.onResume()
 		preferences.registerOnSharedPreferenceChangeListener(this)
+		findPreference<GamePathPreference>("game_path")?.let { updateGamePathPreference(it) }
 		updateArgumentsSummary()
 		updateRenderResolutionSummary()
 	}

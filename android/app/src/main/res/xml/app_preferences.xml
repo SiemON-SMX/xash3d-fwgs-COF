@@ -4,11 +4,12 @@
 	xmlns:tools="http://schemas.android.com/tools">
 
 	<PreferenceCategory app:title="@string/storage_settings">
-		<Preference
+		<su.xash.cryoffear.ui.settings.GamePathPreference
 			app:icon="@drawable/ic_outline_folder_24"
 			app:key="game_path"
 			app:persistent="false"
 			app:title="@string/game_data_location"
+			app:widgetLayout="@layout/preference_game_path_widget"
 			tools:summary="/storage/emulated/0/Android/data/su.xash.cryoffear/files" />
 	</PreferenceCategory>
 
@@ -36,6 +37,13 @@
 			app:key="stretch_resolution"
 			app:summary="@string/stretch_resolution_summary"
 			app:title="@string/stretch_resolution" />
+
+		<SwitchPreferenceCompat
+			app:defaultValue="false"
+			app:icon="@drawable/ic_outline_2d_24"
+			app:key="no_3d_menu"
+			app:summary="@string/menu_2d_summary"
+			app:title="@string/menu_2d" />
 
 		<SwitchPreferenceCompat
 			app:defaultValue="true"
