@@ -21,8 +21,13 @@ mv $BUILD_ONCE_RUN_WITH_SPECIFIC_RUNTIME_VERSION java
 export JAVA_HOME=$GITHUB_WORKSPACE/java
 export PATH=$PATH:$JAVA_HOME/bin
 
+# pinned so a push to hlsdk-portable doesn't change builds by itself, bump this when you update it
+HLSDK_COMMIT="d6239fa1c77c"
+
 echo "Download hlsdk-portable"
-git clone --depth 1 --recursive https://github.com/SiemON-SMX/hlsdk-portable -b CryOfFear 3rdparty/hlsdk-portable || exit 1
+git clone --recursive https://github.com/SiemON-SMX/hlsdk-portable -b CryOfFear 3rdparty/hlsdk-portable || exit 1
+git -C 3rdparty/hlsdk-portable checkout "$HLSDK_COMMIT" || exit 1
+git -C 3rdparty/hlsdk-portable submodule update --init --recursive || exit 1
 
 echo "Download SDL"
 pushd 3rdparty || exit 1
@@ -32,7 +37,7 @@ popd || exit 1
 
 echo "Download FFmpeg"
 mkdir -p 3rdparty/ffmpeg || exit 1
-for ABI in armeabi-v7a:arm32 arm64-v8a:arm64 x86:i386; do
+for ABI in arm64-v8a:arm64; do
 	FFMPEG_ARCHIVE=$(GH_CPU_ARCH="${ABI#*:}" get_ffmpeg_archive)
 	wget "https://github.com/FWGS/FFmpeg-Builds/releases/download/latest/$FFMPEG_ARCHIVE.tar.xz" -qO- | tar -xJf - -C 3rdparty/ffmpeg || exit 1
 	mv "3rdparty/ffmpeg/$FFMPEG_ARCHIVE" "3rdparty/ffmpeg/${ABI%%:*}"
