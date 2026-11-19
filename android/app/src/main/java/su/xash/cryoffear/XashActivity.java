@@ -311,6 +311,10 @@ public class XashActivity extends SDLActivity {
 			argv = combineArguments(argv, "-stretch_resolution");
 		}
 
+		if (prefs.getBoolean("no_3d_menu", false) && !hasArgument(argv, "-no3dmenu")) {
+			argv = combineArguments(argv, "-no3dmenu");
+		}
+
 		String resolutionArgs = getRenderResolutionArguments(argv);
 		if (!resolutionArgs.isEmpty()) {
 			argv = combineArguments(argv, resolutionArgs);
@@ -379,50 +383,60 @@ public class XashActivity extends SDLActivity {
 			return;
 		}
 
-		final SurfaceView surface = findSurfaceView();
-		if (surface == null) {
+		mStretchFixedSurface = getPrefs().getBoolean("stretch_resolution", false);
+
+		if (mFixedSurfaceWidth == mAppliedSurfaceWidth
+				&& mFixedSurfaceHeight == mAppliedSurfaceHeight
+				&& mStretchFixedSurface == mAppliedSurfaceStretch) {
 			return;
 		}
 
-		DisplayMetrics metrics = new DisplayMetrics();
-		getWindowManager().getDefaultDisplay().getRealMetrics(metrics);
-		int screenWidth = Math.max(metrics.widthPixels, metrics.heightPixels);
-		int screenHeight = Math.min(metrics.widthPixels, metrics.heightPixels);
+		SurfaceView surfaceView = findSurfaceView();
+		if (surfaceView == null) {
+			Log.w(TAG, "SDL surface not found; fixed resolution will be applied later if possible");
+			return;
+		}
 
-		final int renderWidth = mFixedSurfaceWidth;
-		final int renderHeight = mFixedSurfaceHeight;
-
-		int layoutWidth;
-		int layoutHeight;
 		if (mStretchFixedSurface) {
-			layoutWidth = ViewGroup.LayoutParams.MATCH_PARENT;
-			layoutHeight = ViewGroup.LayoutParams.MATCH_PARENT;
+			stretchSurfaceToScreen(surfaceView);
 		} else {
-			float targetAspect = (float) renderWidth / (float) renderHeight;
-			float screenAspect = (float) screenWidth / (float) screenHeight;
-			if (screenAspect > targetAspect) {
-				layoutHeight = screenHeight;
-				layoutWidth = Math.round(screenHeight * targetAspect);
-			} else {
-				layoutWidth = screenWidth;
-				layoutHeight = Math.round(screenWidth / targetAspect);
+			surfaceView.getHolder().setFixedSize(mFixedSurfaceWidth, mFixedSurfaceHeight);
+		}
+
+		mAppliedSurfaceWidth = mFixedSurfaceWidth;
+		mAppliedSurfaceHeight = mFixedSurfaceHeight;
+		mAppliedSurfaceStretch = mStretchFixedSurface;
+	}
+
+	private void stretchSurfaceToScreen(SurfaceView surfaceView) {
+		View view = surfaceView;
+		while (view != null) {
+			ViewGroup.LayoutParams params = view.getLayoutParams();
+			if (params != null && (params.width != ViewGroup.LayoutParams.MATCH_PARENT || params.height != ViewGroup.LayoutParams.MATCH_PARENT)) {
+				params.width = ViewGroup.LayoutParams.MATCH_PARENT;
+				params.height = ViewGroup.LayoutParams.MATCH_PARENT;
+				view.setLayoutParams(params);
 			}
+
+			if (!(view.getParent() instanceof View)) {
+				break;
+			}
+
+			view = (View) view.getParent();
 		}
 
-		ViewGroup.LayoutParams params = surface.getLayoutParams();
-		if (params != null && (params.width != layoutWidth || params.height != layoutHeight)) {
-			params.width = layoutWidth;
-			params.height = layoutHeight;
-			surface.setLayoutParams(params);
+		ViewGroup.LayoutParams params = surfaceView.getLayoutParams();
+		if (params != null && (params.width != ViewGroup.LayoutParams.MATCH_PARENT || params.height != ViewGroup.LayoutParams.MATCH_PARENT)) {
+			params.width = ViewGroup.LayoutParams.MATCH_PARENT;
+			params.height = ViewGroup.LayoutParams.MATCH_PARENT;
+			surfaceView.setLayoutParams(params);
 		}
 
-		if (mAppliedSurfaceWidth != renderWidth || mAppliedSurfaceHeight != renderHeight
-				|| mAppliedSurfaceStretch != mStretchFixedSurface) {
-			surface.getHolder().setFixedSize(renderWidth, renderHeight);
-			mAppliedSurfaceWidth = renderWidth;
-			mAppliedSurfaceHeight = renderHeight;
-			mAppliedSurfaceStretch = mStretchFixedSurface;
-		}
+		surfaceView.setPivotX(0.0f);
+		surfaceView.setPivotY(0.0f);
+		surfaceView.setScaleX(1.0f);
+		surfaceView.setScaleY(1.0f);
+		surfaceView.requestLayout();
 	}
 
 	private SurfaceView findSurfaceView() {

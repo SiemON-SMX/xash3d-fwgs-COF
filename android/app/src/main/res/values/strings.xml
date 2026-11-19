@@ -34,6 +34,8 @@
 	<string name="render_resolution_dialog_summary">Leave empty to use native display resolution</string>
 	<string name="stretch_resolution">Fullscreen</string>
 	<string name="stretch_resolution_summary">Scale the selected render resolution to fill the screen</string>
+	<string name="menu_2d">2D Menu</string>
+	<string name="menu_2d_summary">Use 2D background instead of 3D menu</string>
 	<string name="fix_font">Fix font</string>
 	<string name="fix_font_summary">Fix con_oldfont and con_fontscale behavior</string>
 	<string name="game_settings_volume_buttons">Use volume buttons</string>
@@ -44,6 +46,10 @@
 	<string name="preferences_server_package">Server package</string>
 	<string name="preferences_use_icons">Use icons instead of backgrounds</string>
 	<string name="game_data_location">Default data location</string>
+	<string name="select_storage_location">Select storage location</string>
+	<string name="internal_storage">Internal storage</string>
+	<string name="external_storage">External storage</string>
+	<string name="no_external_storage_found">No external SD card or USB storage found.</string>
 	<string name="game_data_location_not_local_storage">This folder is not located on the device\'s storage. Cloud services and virtual folders cannot be used as a game data location. Choose a folder on the internal storage or a mounted SD card.</string>
 	<string name="game_data_location_invalid_path">Could not resolve the selected folder to a real directory path. Try selecting it again.</string>
 	<string name="game_data_location_volume_root">The root of a storage cannot be used as the game data location. Create a folder inside it (for example, xash) and select that folder instead.</string>
