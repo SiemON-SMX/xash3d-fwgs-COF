@@ -21,7 +21,8 @@ mv $BUILD_ONCE_RUN_WITH_SPECIFIC_RUNTIME_VERSION java
 export JAVA_HOME=$GITHUB_WORKSPACE/java
 export PATH=$PATH:$JAVA_HOME/bin
 
-git submodule update --init --remote 3rdparty/mainui || exit 1
+git -C 3rdparty/mainui fetch --depth=1 origin CryOfFear || exit 1
+git -C 3rdparty/mainui checkout FETCH_HEAD || exit 1
 
 echo "Download hlsdk-portable"
 git clone --recursive https://github.com/SiemON-SMX/hlsdk-portable -b CryOfFear 3rdparty/hlsdk-portable || exit 1
