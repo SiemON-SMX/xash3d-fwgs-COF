@@ -145,6 +145,8 @@ typedef struct
 	// weapon predict stuff
 	int		weaponsequence;
 	float		weaponstarttime;
+	int		lastviewmodel;
+	float		waitanimtime;
 } cl_local_data_t;
 
 typedef struct

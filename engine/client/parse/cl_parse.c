@@ -1140,6 +1140,7 @@ void CL_ParseClientData( sizebuf_t *msg, connprotocol_t proto )
 	// make a local copy of physinfo
 	Q_strncpy( cls.physinfo, frame->clientdata.physinfo, sizeof( cls.physinfo ));
 
+	cl.local.viewmodel = frame->clientdata.viewmodel;
 	cl.local.maxspeed = frame->clientdata.maxspeed;
 	cl.local.pushmsec = frame->clientdata.pushmsec;
 	cl.local.weapons = frame->clientdata.weapons;

@@ -824,6 +824,31 @@ searchpath_t *FS_FindFile( const char *name, int *index, char *fixedname, size_t
 {
 	searchpath_t *search;
 
+#if XASH_ANDROID
+	// vgui images packed in the apk replace the ones from the game folder
+	if( !Q_strnicmp( name, "gfx/vgui/", 9 ))
+	{
+		for( search = fs_searchpaths; search; search = search->next )
+		{
+			int pack_ind;
+
+			if( search->type != SEARCHPATH_ANDROID_ASSETS )
+				continue;
+
+			if( flags && !FBitSet( search->flags, flags ))
+				continue;
+
+			pack_ind = search->pfnFindFile( search, name, fixedname, len );
+			if( pack_ind >= 0 )
+			{
+				if( index )
+					*index = pack_ind;
+				return search;
+			}
+		}
+	}
+#endif
+
 	// search through the path, one element at a time
 	for( search = fs_searchpaths; search; search = search->next )
 	{

@@ -21,12 +21,10 @@ mv $BUILD_ONCE_RUN_WITH_SPECIFIC_RUNTIME_VERSION java
 export JAVA_HOME=$GITHUB_WORKSPACE/java
 export PATH=$PATH:$JAVA_HOME/bin
 
-# pinned so a push to hlsdk-portable doesn't change builds by itself, bump this when you update it
-HLSDK_COMMIT="fbe7c36"
+git submodule update --init --remote 3rdparty/mainui || exit 1
 
 echo "Download hlsdk-portable"
 git clone --recursive https://github.com/SiemON-SMX/hlsdk-portable -b CryOfFear 3rdparty/hlsdk-portable || exit 1
-git -C 3rdparty/hlsdk-portable checkout "$HLSDK_COMMIT" || exit 1
 git -C 3rdparty/hlsdk-portable submodule update --init --recursive || exit 1
 
 echo "Download SDL"

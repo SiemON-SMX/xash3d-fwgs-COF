@@ -96,12 +96,25 @@ static void V_SetupViewModel( void )
 	if( !cl.local.weaponstarttime )
 		cl.local.weaponstarttime = cl.time;
 
+	// new weapon model, keep it hidden until its own animation comes in
+	if( cl.local.viewmodel != cl.local.lastviewmodel )
+	{
+		if( cl.local.lastviewmodel && cl.local.viewmodel && cl.time - cl.local.weaponstarttime > 0.1f )
+			cl.local.waitanimtime = cl.time + 0.2f;
+		cl.local.lastviewmodel = cl.local.viewmodel;
+	}
+	else if( cl.local.waitanimtime && cl.time - cl.local.weaponstarttime <= 0.1f )
+		cl.local.waitanimtime = 0.0f;
+
 	// setup the viewent variables
 	view->curstate.colormap = (info->topcolor & 0xFFFF)|((info->bottomcolor << 8) & 0xFFFF);
 	view->curstate.number = cl.playernum + 1;
 	view->index = cl.playernum + 1;
 	view->model = CL_ModelHandle( cl.local.viewmodel );
 	view->curstate.modelindex = cl.local.viewmodel;
+
+	if( cl.local.waitanimtime > cl.time )
+		view->model = NULL;
 	view->curstate.sequence = cl.local.weaponsequence;
 	view->curstate.rendermode = kRenderNormal;
 
