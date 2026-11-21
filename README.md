@@ -3,7 +3,7 @@
 [![Discord Server](https://img.shields.io/discord/1480939659021520979?logo=Discord&label=SiemON%20ports%20%28SP%20OF%29)](https://discord.gg/38YzeFrtvJ) \
 [![Download Continuous Build](https://img.shields.io/badge/downloads-continuous-orange)](https://github.com/SiemON-SMX/xash3d-fwgs-COF/releases/tag/continuous)
 
-A modified fork of Xash3D FWGS for Cry of Fear reverse-engineered. Adds the engine-side support for the CoF client renderer: Paranoia GL hacks, GL state handoff, gl4es fixes, The renderer itself (GLSL Cg water, spotlight shader, dynamic lights, bump/specular, post-effects, glows, sky, decals) runs in the game's client library.
+A modified fork of Xash3D FWGS for Cry of Fear reverse-engineered. Adds the engine-side support for the CoF client renderer: Paranoia GL hacks, GL state handoff, gl4es fixes, The renderer itself (GLSL Cg water, spotlight shader, dynamic lights, bump/specular, post-effects, glows, blur, sky, decals) runs in the game's client library.
 
 [Android]: Added Game Downloader for download Cry of Fear quickly. Thanks to [hasandramali](https://github.com/hasandramali).
 [Touch]: Removed some touch buttons that's isn't nesscary for game.
