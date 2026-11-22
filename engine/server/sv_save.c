@@ -881,7 +881,7 @@ fill the save resore buffer
 parse hash strings
 =============
 */
-static SAVERESTOREDATA *LoadSaveData( const char *level )
+static SAVERESTOREDATA *LoadSaveData( const char *level, qboolean quiet )
 {
 	int		tokenSize, tableCount;
 	int		size, tokenCount;
@@ -897,7 +897,10 @@ static SAVERESTOREDATA *LoadSaveData( const char *level )
 
 	if(( pFile = FS_Open( name, "rb", true )) == NULL )
 	{
-		Con_Printf( S_ERROR "Couldn't open save data file %s.\n", name );
+		if( quiet )
+			Con_Reportf( S_ERROR "Couldn't open save data file %s.\n", name );
+		else
+			Con_Printf( S_ERROR "Couldn't open save data file %s.\n", name );
 		return NULL;
 	}
 
@@ -1107,7 +1110,7 @@ static void RestoreDecal( SAVERESTOREDATA *pSaveData, decallist_t *entry, qboole
 	{
 		trace_t	tr;
 
-		Con_Printf( S_ERROR "RestoreDecal: couldn't restore entity index %i\n", entry->entityIndex );
+		Con_Reportf( S_ERROR "RestoreDecal: couldn't restore entity index %i\n", entry->entityIndex );
 
 		vec3_t testspot = Vec3( entry->position );
 		VectorMA( testspot, 5.0f, entry->impactPlaneNormal, testspot );
@@ -1619,7 +1622,7 @@ static int LoadGameState( char const *level, qboolean changelevel )
 	SAVERESTOREDATA	*pSaveData;
 	SAVE_HEADER	header;
 
-	pSaveData = LoadSaveData( level );
+	pSaveData = LoadSaveData( level, changelevel );
 	if( !pSaveData ) return 0; // couldn't load the file
 
 	// must set mapname before calling into DLL
@@ -1947,7 +1950,7 @@ static void LoadAdjacentEnts( const char *pOldLevel, const char *pLandmarkName )
 		// map was already in the list
 		if( test < i ) continue;
 
-		pSaveData = LoadSaveData( currentLevelData.levelList[i].mapName );
+		pSaveData = LoadSaveData( currentLevelData.levelList[i].mapName, true );
 
 		if( pSaveData )
 		{
